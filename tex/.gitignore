@@ -1,0 +1,13 @@
+*~
+*.vrb
+pf2022.*
+!pf2022.tex
+*.out
+*.aux
+*.nav
+*.toc
+*.vrb
+*.log
+*.snm
+/*.pdf
+
