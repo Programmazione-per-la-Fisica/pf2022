@@ -1,0 +1,13 @@
+
+{
+  \setbeamertemplate{footline}{}
+  \setbeamertemplate{navigation symbols}{}
+  \begin{frame}[plain,noframenumbering]
+    \begin{tikzpicture}[remember picture,overlay]
+      \node (by-sa) at ([yshift=1cm]current page.south) {\includegraphics[height=.5cm]{images/by-sa}};
+      \node (git) at ([yshift=.2cm]by-sa.north) {\tiny\url{https://github.com/programmazione-per-la-fisica}};
+      \node (virtuale) at ([yshift=.2cm]git.north) {\tiny\url{https://virtuale.unibo.it/course/view.php?id=42775}};
+    \end{tikzpicture}
+    \titlepage
+  \end{frame}
+}
