@@ -184,6 +184,10 @@ int increment(int n)
   \begin{itemize}[<+->]
   \item Imagine memory as a looooong tape divided into locations whose content
     you can read and write
+    \begin{itemize}[<.->]
+    \item Each location has the same size (let's assume one byte)
+    \item A piece of data can occupy multiple locations
+    \end{itemize}
   \item Each memory location is identified by an index
     \begin{itemize}[<.->]
     \item e.g. location at position 8'363'944
@@ -204,7 +208,7 @@ int increment(int n)
 \begin{frame}[fragile]{Also data are binary}
 
   \begin{semiverbatim}
-{\color{gray}00101001110110011000011111010111001011100111101100
+{\color{gray}...01001110110011000011111010111001011100111101100
 11101000101001101011100111111100011101001000011010
 00000110001101000011111010010001000101110000010010
 00111011010111101101111110110011011111101100101101
@@ -214,7 +218,7 @@ int increment(int n)
 00010001111001101000111100100110110110001101100100
 01000110010111100011100010100101011011000110010001
 10100011111101101000000000111101000001000100101101
-00001001111011000000110000100110000101000100111011}\end{semiverbatim}
+00001001111011000000110000100110000101000100111...}\end{semiverbatim}
 
 \uncover<2->{
   \tikz[overlay] \node[draw,thick,rounded corners,red,minimum width=65mm,minimum
@@ -437,15 +441,15 @@ int main()
   A less minimal C++ program (details will be explained)
 
   \begin{codeblock}
-\alert<2>{#include <iostream>}\uncover<2->{ // import I/O utilities}
-\alert<2>{#include <string>}\uncover<2->{ // import string utilities}
+\alert<2|trans:0>{#include <iostream>}\uncover<2->{ // import I/O utilities}
+\alert<2|trans:0>{#include <string>}\uncover<2->{ // import string utilities}
 
-int \alert<3>{main}()\uncover<3->{ // start the program from here}
+int \alert<3|trans:0>{main}()\uncover<3->{ // start the program from here}
 \{
-\alert<4>{  std::cout <{}< "What\textquotesingle{}s your name? ";}\uncover<4->{ // print a message on the terminal}
-\alert<5>{  std::string name;}\uncover<5->{ // some space is needed in memory for a string}
-\alert<6>{  std::cin >{}> name;}\uncover<6->{ // read a string from the terminal into that space}
-\alert<7>{  std::cout <{}< "Hello, " <{}< name <{}< \bslashn{};}\uncover<7->{ // print a multi-part message}
+\alert<4|trans:0>{  std::cout << "What\textquotesingle{}s your name? ";}\uncover<4->{ // print a message on the terminal}
+\alert<5|trans:0>{  std::string name;}\uncover<5->{ // some space is needed in memory for a string}
+\alert<6|trans:0>{  std::cin >> name;}\uncover<6->{ // read a string from the terminal into that space}
+\alert<7|trans:0>{  std::cout << "Hello, " << name << \bslashn{};}\uncover<7->{ // print a multi-part message}
 \}\end{codeblock}
 
 \begin{shellblock}<8->{
@@ -464,9 +468,9 @@ Hello, Francesco
     and manipulate \alert<.>{objects}
   \item An object is a region of storage (i.e. memory)
     \begin{itemize}[<+->]
-    \item has a \alert<.>{storage duration}/\alert<.>{lifetime}
-    \item has a \alert<.>{type}
-    \item can have a \alert<.>{name}
+    \item it has a \alert<.>{type}
+    \item it has a \alert<.>{lifetime}
+    \item it can have a \alert<.>{name}
     \end{itemize}
   \end{itemize}
 
@@ -489,12 +493,19 @@ Hello, Francesco
     \begin{itemize}
     \item C++ is a \alert{strongly typed} language (mostly)
     \end{itemize}
+  \item A type is also associated with a machine representation for the values
+    belonging to the type
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Types \insertcontinuationtext}
+
+  \begin{itemize}[<+->]
   \item The compiler checks that program instructions are compatible with the type system
     \begin{itemize}
     \item C++ is a \alert{statically typed} language (mostly)
     \end{itemize}
-  \item A type is also associated with a machine representation for
-    the values belonging to the type
   \item C++ defines a few fundamental types and provides mechanisms to build
     compound types on top of them
   \end{itemize}
@@ -519,13 +530,19 @@ Hello, Francesco
         \item floating-point types: \code{float}, \alert<3->{\code{double}}, \code{long double}
       \end{itemize}
     \item \code{std::nullptr_t}
+      \begin{itemize}
+      \item type of the null pointer \code{nullptr}
+      \end{itemize}
     \item \code{void}
+      \begin{itemize}
+      \item denotes absence of type information
+      \end{itemize}
   \end{itemize}
 
   \pause
 
-  In general, size and machine representation are not defined by the
-  standard
+  Size and representation may depend on the actual computer architecture where
+  the program runs
 
 \end{frame}
 
@@ -546,6 +563,7 @@ Hello, Francesco
         \begin{itemize}
         \item $[-2$ $147$ $483$ $648, +2$ $147$ $483$ $647]$
         \end{itemize}
+      \item<7-> Default type you should use to count and do integer arithmetic
       \end{itemize}
     \end{column}
     \hfill
@@ -585,9 +603,44 @@ Hello, Francesco
   \item Identifiers are used to name entities in a program
     \begin{itemize}
     \item Choose meaningful names
+    \item Get used to write in English
     \end{itemize}
   \end{itemize}
 
+\end{frame}
+
+\begin{frame}{Keywords}
+
+  The following identifiers are reserved
+  \vskip .5cm
+
+  {
+    \setbeamerfont{localfont}{size=\scriptsize,family=\tt}
+    \usebeamerfont{localfont}
+
+    \begin{tabular}{l l l l l}
+      alignas          & consteval        & final            & or_eq            & throw            \\
+      alignof          & constexpr        & float            & override         & true             \\
+      and              & constinit        & for              & private          & try              \\
+      and_eq           & const_cast       & friend           & protected        & typedef          \\
+      asm              & continue         & goto             & public           & typeid           \\
+      auto             & co_await         & if               & register         & typename         \\
+      bitand           & co_return        & import           & reinterpret_cast & union            \\
+      bitor            & co_yield         & inline           & requires         & unsigned         \\
+      bool             & decltype         & int              & return           & using            \\
+      break            & default          & long             & short            & virtual          \\
+      case             & delete           & module           & signed           & void             \\
+      catch            & do               & mutable          & sizeof           & volatile         \\
+      char             & double           & namespace        & static           & wchar_t          \\
+      char8_t          & dynamic_cast     & new              & static_assert    & while            \\
+      char16_t         & else             & noexcept         & static_cast      & xor              \\
+      char32_t         & enum             & not              & struct           & xor_eq           \\
+      class            & explicit         & not_eq           & switch                              \\
+      compl            & export           & nullptr          & template                            \\
+      concept          & extern           & operator         & this                                \\
+      const            & false            & or               & thread_local                        \\
+    \end{tabular}
+  }
 \end{frame}
 
 \begin{frame}[fragile]{Variables}
@@ -598,12 +651,20 @@ Hello, Francesco
   \end{itemize}
 
   \begin{codeblock}<2->{
-\uncover<2->{int i;            // declaration}\uncover<3->{; the value is undefined}
-\uncover<4->{i = 4321;         // assignment of a constant}
-\uncover<5->{int j\{1234\};   // declaration and initialization in one step}
-\uncover<6->{i = j;            // assignment of j\textquotesingle{}s value to i}}\end{codeblock}
+\uncover<2->{\tikzref{l1}int i;            // declaration}\uncover<3->{; the value is undefined}
+\uncover<4->{\tikzref{l2}i = 4321;         // assignment of a constant}
+\uncover<5->{\tikzref{l3}int j\{1234\};      // declaration and initialization in one step}
+\uncover<6->{\tikzref{l4}i = j;            // assignment of j\textquotesingle{}s value to i}}\end{codeblock}
 
-  \begin{tikzpicture}[
+  \only<trans>{
+    \tikz[overlay] \node[circle,draw,inner sep=1pt] (m1) at ([xshift=-2ex]l1) {\tiny 1};
+    \tikz[overlay] \node[circle,draw,inner sep=1pt] (m2) at ([xshift=-2ex]l2) {\tiny 2};
+    \tikz[overlay] \node[circle,draw,inner sep=1pt] (m3) at ([xshift=-2ex]l3) {\tiny 3};
+    \tikz[overlay] \node[circle,draw,inner sep=1pt] (m4) at ([xshift=-2ex]l4) {\tiny 4};
+  }
+
+  \only<beamer>{
+    \begin{tikzpicture}[
       mem/.style={
         node font=\ttfamily\scriptsize,
         minimum height=.5cm,
@@ -619,50 +680,62 @@ Hello, Francesco
       },
       anchor=south west,
       node distance=0,
-    ]
-    \clip (0.1,-1) rectangle (\textwidth-0.1cm,1.5);
-    %% \visible<3->{\draw[step=.5cm,gray,thin,dashed] (0, .1cm) grid (\textwidth,0.4cm);}
-    \visible<2->{\node at (0,0) [mem,draw=black!50,minimum width=\textwidth,
+      ]
+      \clip (0.1,-1) rectangle (\textwidth-0.1cm,1.5);
+      %% \visible<3->{\draw[step=.5cm,gray,thin,dashed] (0, .1cm) grid (\textwidth,0.4cm);}
+      \visible<2->{\node at (0,0) [mem,draw=black!50,minimum width=\textwidth,
         "Memory" above] {};}
       \visible<2->{\node at (2,0) [location, "i" below] {
           \alt<-2>{}{\alt<3>{?}{\alt<4-5>{4321}{1234}}}};}
-        \visible<5->{\node at (7,0) [location, "j" below] {1234};}
-  \end{tikzpicture}
+      \visible<5->{\node at (7,0) [location, "j" below] {1234};}
+    \end{tikzpicture}
+  }
+
+  \only<trans>{
+    \vskip -.2 cm
+
+    \begin{tikzpicture}[
+      mem/.style={
+        node font=\ttfamily\scriptsize,
+        minimum height=.5cm,
+      },
+      location/.style={
+        mem,
+        draw=black!50,
+        minimum width=1.2cm,
+        fill=green!20!white,
+      },
+      every node/.style={
+        mem,
+      },
+      anchor=north west,
+      node distance=0,
+      ]
+      \clip (0.1,.5) rectangle (\textwidth-0.1cm,-3.6);
+      \node (mem1) at (0,0) [mem,draw=black!50,minimum width=\textwidth, "Memory" above] {};
+      \node at (2,0) [location, "i" above] {?};
+      \node (mem2) at (0,-1) [mem,draw=black!50,minimum width=\textwidth] {};
+      \node at (2,-1) [location] {4321};
+      \node (mem3) at (0,-2) [mem,draw=black!50,minimum width=\textwidth] {};
+      \node at (2,-2) [location] {4321};
+      \node at (7,0) [phantom word, "j" above] {};
+      \node at (7,-2) [location] {1234};
+      \node (mem4) at (0,-3) [mem,draw=black!50,minimum width=\textwidth] {};
+      \node at (2,-3) [location] {1234};
+      \node at (7,-3) [location] {1234};
+    \end{tikzpicture}
+
+    \tikz[overlay] \node[circle,draw,inner sep=1pt] at ([xshift=-1ex]mem1.west) {\tiny 1};
+    \tikz[overlay] \node[circle,draw,inner sep=1pt] at ([xshift=-1ex]mem2.west) {\tiny 2};
+    \tikz[overlay] \node[circle,draw,inner sep=1pt] at ([xshift=-1ex]mem3.west) {\tiny 3};
+    \tikz[overlay] \node[circle,draw,inner sep=1pt] at ([xshift=-1ex]mem4.west) {\tiny 4};
+
+    \vskip -.2 cm
+  }
 
   \uncover<7->{NB At the end \code{i} and \code{j} have the same value but remain
   \alert{distinct} objects}
 
-\end{frame}
-
-\begin{frame}{Keywords}
-
-  The following identifiers are reserved
-  \vskip .5cm
-
-  {
-    \setbeamerfont{localfont}{size=\scriptsize,family=\tt}
-    \usebeamerfont{localfont}
-
-    \begin{tabular}{l l l l l l}
-      alignas  & const        & for       & private          & throw    \\
-      alignof  & constexpr    & friend    & protected        & true     \\
-      and      & const_cast   & goto      & public           & try      \\
-      and_eq   & continue     & if        & register         & typedef  \\
-      asm      & decltype     & inline    & reinterpret_cast & typeid   \\
-      auto     & default      & int       & return           & typename \\
-      bitand   & delete       & long      & short            & union    \\
-      bitor    & do           & mutable   & signed           & unsigned \\
-      bool     & double       & namespace & sizeof           & using    \\
-      break    & dynamic_cast & new       & static           & virtual  \\
-      case     & else         & noexcept  & static_assert    & void     \\
-      catch    & enum         & not       & static_cast      & volatile \\
-      char     & explicit     & not_eq    & struct           & xor      \\
-      char16_t & export       & nullptr   & switch           & xor_eq   \\
-      char32_t & extern       & operator  & template         & wchar_t  \\
-      class    & false        & or        & this             & while    \\
-      compl    & float        & or_eq     & thread_local
-    \end{tabular}
-  }
 \end{frame}
 
 \begin{frame}{Literals}
@@ -678,7 +751,8 @@ Hello, Francesco
   \item character
   \item string
   \item boolean
-  \item \code{nullptr}
+  \item null pointer
+  \item user-defined
   \end{itemize}
 
 \end{frame}
@@ -728,7 +802,7 @@ Hello, Francesco
   \end{itemize}
 
   \begin{codeblock}<+->{
-std::string corso = "Programmazione per la Fisica";
+std::string corso\{"Programmazione per la Fisica"\};
 \uncover<+->{corso = corso \tikzref{strplusref}+ "\bslash{n}Anno Accademico 2022/2023";}}\end{codeblock}
 
 \uncover<+->{
@@ -765,5 +839,101 @@ std::string corso = "Programmazione per la Fisica";
   \end{itemize}
 
 \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Operators}
+
+  \begin{columns}[t]
+
+    \column{0.12\textwidth}
+    {\scriptsize Arithmetic}
+    \begin{codeblock}
++a
+-a
+a + b
+a - b
+a * b
+a / b
+a % b
+~a
+a & b
+a | b
+a ^ b
+a {<}< b
+a {>}> b\end{codeblock}
+
+    \column{0.12\textwidth}
+    \centering{\scriptsize Logical}
+    \begin{codeblock}
+!a
+a && b
+a || b\end{codeblock}
+
+    \column{0.13\textwidth}
+    \centering{\scriptsize Comparison}
+    \begin{codeblock}
+a == b
+a != b
+a {<} b
+a {>} b
+a {<}= b
+a >= b\end{codeblock}
+
+    \column{0.13\textwidth}
+    \centering{\scriptsize Increment}
+    \begin{codeblock}
+++a
+{-}-a
+a++
+a{-}-\end{codeblock}
+
+    \column{0.14\textwidth}
+    \centering{\scriptsize Assignments}
+    \begin{codeblock}
+a = b
+a += b
+a -= b
+a *= b
+a /= b
+a %= b
+a &= b
+a |= b
+a ^= b
+a <{}<= b
+a >{}>= b\end{codeblock}
+
+    \column{0.09\textwidth}
+    \centering{\scriptsize Access}
+    \begin{codeblock}
+a[b]
+*a
+&a
+a->b
+a.b\end{codeblock}
+
+    \column{0.09\textwidth}
+    \centering{\scriptsize Other}
+    \begin{codeblock}
+a(\ddd)
+a, b
+? :\end{codeblock}
+
+  \end{columns}
+
+  \vskip .5cm
+
+  Plus: casts, allocation and deallocation, static introspection, \ldots
+
+  \begin{itemize}[<+->]
+  \item Rules exist for associativity, commutativity and precedence
+    \begin{itemize}[<.->]
+    \item When in doubt use parentheses
+    \end{itemize}
+  \item Many operators can be \alert{overloaded} for user-defined types
+    \begin{itemize}[<.->]
+    \item e.g. \code{+} to concatenate strings
+    \end{itemize}
+  \end{itemize}
 
 \end{frame}
