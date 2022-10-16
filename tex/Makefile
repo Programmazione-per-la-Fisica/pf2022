@@ -2,6 +2,7 @@
 
 TEXFILES = $(shell echo *.tex)
 LATEX = pdflatex -halt-on-error -file-line-error
+TRANS = "\PassOptionsToClass{trans}{beamer}\input{pf2022}"
 
 pf2022.pdf: $(TEXFILES)
 	echo '\input{introduction.tex}' > contents.tex
@@ -12,14 +13,14 @@ pf2022.pdf: $(TEXFILES)
 
 introduction.pdf: pf2022.tex frontmatter.tex introduction.tex
 	echo '\input{introduction.tex}' > contents.tex
-	$(LATEX) -jobname=introduction pf2022
-	$(LATEX) -jobname=introduction pf2022
+	$(LATEX) -jobname=introduction $(TRANS)
+	$(LATEX) -jobname=introduction $(TRANS)
 	rm contents.tex
 
 basics.pdf: pf2022.tex frontmatter.tex basics.tex
 	echo '\input{basics.tex}' > contents.tex
-	$(LATEX) -jobname=basics pf2022
-	$(LATEX) -jobname=basics pf2022
+	$(LATEX) -jobname=basics $(TRANS)
+	$(LATEX) -jobname=basics $(TRANS)
 	rm contents.tex
 
 clean:
