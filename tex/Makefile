@@ -5,8 +5,10 @@ LATEX = pdflatex -halt-on-error -file-line-error
 TRANS = "\PassOptionsToClass{trans}{beamer}\input{pf2022}"
 
 pf2022.pdf: $(TEXFILES)
+	rm -f contents.tex
 	echo '\input{introduction.tex}' > contents.tex
 	echo '\input{basics.tex}' >> contents.tex
+	echo '\input{flowcontrol.tex}' >> contents.tex
 	$(LATEX) pf2022
 	$(LATEX) pf2022
 	rm contents.tex
@@ -23,5 +25,11 @@ basics.pdf: pf2022.tex frontmatter.tex basics.tex
 	$(LATEX) -jobname=basics $(TRANS)
 	rm contents.tex
 
+flowcontrol.pdf: pf2022.tex frontmatter.tex flowcontrol.tex
+	echo '\input{flowcontrol.tex}' > contents.tex
+	$(LATEX) -jobname=flowcontrol $(TRANS)
+	$(LATEX) -jobname=flowcontrol $(TRANS)
+	rm contents.tex
+
 clean:
-	rm -f *.out *.aux *.nav *.toc *.vrb *.log *.snm
+	rm -f *.out *.aux *.nav *.toc *.vrb *.log *.snm contents.tex

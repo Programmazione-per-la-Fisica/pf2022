@@ -1,0 +1,925 @@
+% !TeX root = ./pf2022.tex
+
+%\includeonlyframes{current}
+
+\section{Flow control}
+
+\begin{frame}{Algorithm}
+
+  A finite sequence of precisely defined steps to solve a problem
+
+\end{frame}
+
+\begin{frame}<1-2|trans:1>[fragile,label=firstexample]{Sum of two numbers}
+
+  A program that reads two numbers from input and writes their sum to output
+
+  \begin{columns}[T]
+    \begin{column}{.5\textwidth}
+      \centering
+  \uncover<2->{
+    \begin{tikzpicture}
+      [auto,
+      startstop/.style = {rectangle, rounded corners=5pt, draw=black, thick, node font=\scriptsize,
+        text width=4em, align=flush center},
+      inout/.style     = {trapezium, trapezium left angle=60,trapezium right angle=120, thick, draw=green, fill=green!20,
+        text width=4em, align=flush center, node font=\scriptsize},
+      block/.style     = {rectangle, draw=blue, thick, fill=blue!20,align=center, rounded corners=2pt,
+        text width=4em, align=flush center, node font=\scriptsize},
+      decision/.style  = {diamond, aspect=1.5, draw=red, thick, fill=red!20, text width=4em, align=flush center, inner sep=1pt, node font=\scriptsize},
+      line/.style      = {draw, thick, -latex, shorten >=2pt}]
+      \matrix [column sep=5mm,row sep=4mm]
+      {
+        % row 1
+        \node [startstop] (start) {start}; \\
+        % row 2
+        \node [inout] (in) {read a, b}; \\
+        % row 3
+        \node [block,text width=7em] (result) {result $\leftarrow$ a + b}; \\
+        % row 4
+        \node [inout] (out) {write result}; \\
+        % row 5
+        \node [startstop] (stop) {stop}; \\
+      };
+      \begin{scope}[every path/.style=line]
+        \path (start)  -- (in);
+        \path (in)     -- (result);
+        \path (result) -- (out);
+        \path (out)    -- (stop);
+      \end{scope}
+    \end{tikzpicture}
+  }
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{codeblock}<3-|trans:2>{
+#include <iostream>
+
+int main()
+\{
+  \uncover<4->{\alert<4|trans:0>{int a;
+  int b;
+  std::cin >> a >> b;}}
+  \uncover<5->{\alert<5|trans:0>{int result\{a + b\};}}
+  \uncover<6->{\alert<6|trans:0>{std::cout << result << \bslashn;}}
+\}}\end{codeblock}
+
+    \end{column}
+  \end{columns}
+
+  \uncover<7-|trans:2>{
+    \begin{tikzpicture}[
+      mem/.style={
+        node font=\ttfamily\scriptsize,
+        minimum height=.5cm,
+      },
+      location/.style={
+        mem,
+        draw=black!50,
+        minimum width=1.2cm,
+        fill=green!20!white,
+      },
+      every node/.style={
+        mem,
+      },
+      anchor=south west,
+      node distance=0,
+      ]
+      \clip (0.1,-1) rectangle (\textwidth-0.1cm,1.5);
+      \node at (0,0) [mem,draw=black!50,minimum width=\textwidth, "Memory" above] {};
+      \node[location] (c) at (2,0) ["std{::}cout" below] {\ddd};
+      \node[location] (a) at (5,0) ["a" below] {3};
+      \node[location] (b)          [right=of a, "b" below] {4};
+      \node[location] (r)          [right=of b, "result" below] {7};
+    \end{tikzpicture}
+  }
+
+\end{frame}
+
+\begin{frame}{Statement}
+  Statements are units of code that are executed in sequence
+
+  \begin{itemize}
+  \item expression statement
+  \item compound statement or block
+  \item declaration statement
+  \item selection statement
+  \item iteration statement
+  \item jump statement
+  \item \ldots
+  \end{itemize}
+
+\end{frame}
+
+\againframe<3-|trans:2>{firstexample}
+
+\begin{frame}[fragile]{Expression statement}
+
+  \begin{itemize}[<+->]
+  \item An expression followed by a semicolon (\code{;})
+  \item The value of the expression (if any) is discarded
+  \item The expression can have side effects
+    \begin{itemize}[<.->]
+    \item Indeed, we often write statements with the purpose to change data in
+      memory or to do I/O (input/output)
+    \end{itemize}
+  \end{itemize}
+
+  \begin{codeblock}
+\uncover<1->{b + 2;}
+\uncover<3->{a = b + 2;
+std::cin >> a >> b;}
+\uncover<4->{; // empty statement}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{Compound statement (or block)}
+
+  A sequence of zero or more statements enclosed between braces
+  (\code{\{\}})
+
+  \begin{codeblock}
+\{
+   found = true;
+   ++i;
+   int n\{3\};
+   std::cout << n;
+\}\end{codeblock}
+
+  \begin{codeblock}
+\{ found = true; ++i; \ddd \} // all on one line\end{codeblock}
+
+\end{frame}
+
+\begin{frame}{Declaration statement}
+
+  \begin{itemize}[<+->]
+  \item A declaration statement introduces one or more new identifiers into a
+    \Cpp{} program, possibly initializing them
+    \begin{itemize}
+    \item typically variables, but not only
+    \end{itemize}
+
+  \item A declaration of a \textbf{variable} in a \textbf{block} makes the
+    variable of \alert{automatic storage duration}, unless otherwise specified
+    \begin{itemize}
+    \item the corresponding object is automatically created each time the
+      declaration is executed
+    \item<.-> the corresponding object is automatically destroyed each time the
+      execution reaches the end of the block
+    \end{itemize}
+
+  \item A declaration should introduce only one identifier
+
+  \item A variable should be declared only in the moment it's actually needed
+
+  \item A variable should be initialized at the point of declaration
+    \begin{itemize}
+    \item There are very few exceptions, if any, to this recommendation
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Scope}
+
+  The scope of a name appearing in a program is the, possibly
+  discontiguous, portion of source code where that name is valid
+
+  \begin{itemize}
+  \item block scope
+  \item function scope
+  \item class scope
+  \item namespace scope (including the global one)
+  \item \ldots
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Block scope}
+
+  \begin{itemize}[<+->]
+  \item The scope of a name declared in a block starts at the point of
+    declaration and ends at the \code{\}}
+
+    \begin{codeblock}
+\{
+  num + 1;         // error
+  int num;         // scope of num begins only here
+  std::cin >> num; // ok
+\}                  // scope of num ends here
+std::cout << num;  // error\end{codeblock}
+
+  \item<2-> The scope of a variable should be as small as possible
+    \begin{itemize}
+    \item Declare a variable only when it's needed
+    \item If possible/meaningful, initialize it
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{The smallest of two numbers}
+
+  A program that reads two numbers from input and writes the smallest to output
+
+  \begin{columns}[T]
+    \begin{column}{.5\textwidth}
+  \uncover<2->{
+    \begin{tikzpicture}
+      [auto,
+      startstop/.style = {rectangle, rounded corners=5pt, draw=black, thick, node font=\scriptsize,
+        text width=3em, align=flush center},
+      inout/.style     = {trapezium, trapezium left angle=60,trapezium right angle=120, thick, draw=green, fill=green!20,
+        text width=4em, align=flush center, node font=\scriptsize},
+      block/.style     = {rectangle, draw=blue, thick, fill=blue!20,align=center, rounded corners=2pt,
+        text width=5em, align=flush center, node font=\scriptsize},
+      decision/.style  = {diamond, aspect=1.5, draw=red, thick, fill=red!20, text width=4em, align=flush center, inner sep=1pt, node font=\scriptsize},
+      line/.style      = {draw, thick, -latex, shorten >=2pt}]
+      \matrix [column sep=0mm,row sep=4mm,ampersand replacement=\&]
+      {
+        % row
+        \& \node [startstop] (start) {start}; \\
+        % row
+        \& \node [inout] (in) {read a, b}; \\
+        % row
+        \& \node [decision] (less) {a < b}; \\[-4mm]
+        % row
+        \node [block] (a) {result $\leftarrow$ a}; \&
+        \& \node [block] (b) {result $\leftarrow$ b}; \\
+        % row
+        \& \coordinate (join); \\
+        % row
+        \& \node [inout] (out) {write result}; \\
+        % row
+        \& \node [startstop] (stop) {stop}; \\
+      };
+      \begin{scope}[every path/.style=line]
+        \path (start)  -- (in);
+        \path (in)     -- (less);
+        \path (less)   -| node [near start,above] {\scriptsize{yes}} (a);
+        \path (less)   -| node [near start,above] {\scriptsize{no}} (b);
+        \path[-,shorten >=0pt] (a)   |- (join);
+        \path[-,shorten >=0pt] (b)   |- (join);
+        \path (join) -- (out);
+        \path (out)    -- (stop);
+      \end{scope}
+    \end{tikzpicture}
+  }
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{codeblock}<3->{
+#include <iostream>
+
+int main()
+\{
+  \uncover<4->{\alert<4|trans:0>{int a;
+  int b;
+  std::cin >> a >> b;}}
+  \uncover<7->{\alert<7|trans:0>{int result;}}
+  \uncover<5->{\alert<5|trans:0>{if (a < b) \{}
+    \uncover<8->{\alert<8|trans:0>{result = a;} // (1)}
+  \alert<5|trans:0>{\} else \{}
+    \uncover<8->{\alert<8|trans:0>{result = b;} // (2)}
+  \alert<5|trans:0>{\}}}
+  \uncover<6->{\alert<6|trans:0>{std::cout << result << \bslashn;} // (3)}
+\}}\end{codeblock}
+
+    \end{column}
+  \end{columns}
+
+  \uncover<9->{\code{result} cannot be defined in (1) and/or (2), otherwise it
+    would not be visible in (3)}
+
+\end{frame}
+
+\begin{frame}[fragile]{\code{if then else}}
+
+  \begin{itemize}
+  \item<1-> Selection statement to choose one of two flows of instructions
+    depending on a boolean condition
+  \item<2-> Two (basic) forms:
+    \begin{itemize}
+    \item<3-> \code{if (} \textit{condition-expr} \code{)} \textit{statement} \code{else} \textit{statement}
+    \item<4-> \code{if (} \textit{condition-expr} \code{)} \textit{statement}
+    \end{itemize}
+
+  \begin{columns}[t]
+
+    \begin{column}{.45\textwidth}
+
+      \begin{codeblock}<3->{
+\alert{if} (a < b) \{
+  result = a;   // "true" branch
+\} \alert{else} \{
+  result = b;   // "false" branch
+\}}\end{codeblock}
+
+    \end{column}
+
+    \begin{column}{.45\textwidth}
+      \begin{codeblock}<4->{
+int i\{\ddd\};
+\alert{if} (i < 0) \{
+  i = -i;   // "true" branch
+\}}\end{codeblock}
+
+    \end{column}
+
+  \end{columns}
+
+  \item<5-> \textit{condition-expr} can be any expression whose result is of type
+    (convertible to) \code{bool}, i.e. either true or false
+
+  \item<6-> \textit{statement} can be a block, possibly including multiple
+    statements
+    \begin{itemize}
+    \item In fact, the statement should always be a block
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{\code{bool}}
+
+  Type representing a boolean value
+  \begin{itemize}
+  \item Set of values: ${false, true}$
+  \item Operations: logical conjunction (\textit{and}), disjunction
+    (\textit{or}) and negation (\textit{not}), assignment, comparison
+  \item Size: typically $1$ byte
+  \item Representation: like the \code{int}s \code{0} and \code{1}
+  \item Literals: \code{false} and \code{true}
+
+    \begin{codeblock}<2->{
+\uncover<2->{bool b\{true\};}
+\uncover<3->{b \tikzref{aref}= i =\tikzref{eref}= j;}
+\uncover<6->{bool b2\{i !\tikzref{neref}= 1234;\}}
+\uncover<7->{bool b3\{b2 \alert<7>{\&\&} i < j\};    // and
+bool b4\{i < j \alert<7>{||} i < k\}; // or
+bool b5\{\alert<7>{!}\alert<8>{(}i == j\alert<8>{)\}};      // not}}\end{codeblock}
+
+  \item<8-> Note the use of parenthesis in \code{!(i == j)} to have the right
+    precedence of application of operators
+  \end{itemize}
+
+\uncover<4->{
+  \begin{tikzpicture}[remember picture,overlay]
+    \uncover<4-5>{
+      \node[draw=red,line width=1pt,opacity=.7,rounded corners, minimum width=1.5ex] at ([xshift=.5ex]aref) (abox){};
+      \node (atext) at (current page.south west) [anchor=south west,draw=red,line width=1pt,opacity=.7,rounded corners] {assignment} edge[->,line width=1pt,red,opacity=.3] (abox);
+    }
+    \uncover<5>{
+      \node[draw=red,line width=1pt,opacity=.7,rounded corners,minimum width=3ex] at (eref) (ebox){};
+      \node (etext) [right=of atext,draw=red,line width=1pt,opacity=.7,rounded corners] {equality} edge[->,line width=1pt,red,opacity=.3] (ebox);
+    }
+    \uncover<6>{
+      \node[draw=red,line width=1pt,opacity=.7,rounded corners,minimum width=3ex] at (neref) (nebox){};
+      \node (netext) [right=of etext,draw=red,line width=1pt,opacity=.7,rounded corners] {inequality} edge[->,line width=1pt,red,opacity=.3] (nebox);
+    }
+  \end{tikzpicture}
+}
+
+\end{frame}
+
+\begin{frame}{Logical operations}
+
+  \begin{description}[<+->]
+
+  \item[and] True if both operands are true
+    \vskip .5em
+    {\scriptsize\begin{tabular}{ c c | c }
+      op1 & op2 & op1 \textbf{\&\&} op2 \\
+      \hline
+      \code{false} & \code{false} & \code{false} \\
+      \code{false} & \code{true} & \code{false} \\
+      \code{true} & \code{false} & \code{false} \\
+      \code{true} & \code{true} & \code{true} \\
+    \end{tabular}}
+    \vskip .5em
+
+    \code{op2} is evaluated only if \code{op1} is \code{true}
+
+  \item[or] True if at least one operand is true
+    \vskip .5em
+
+    {\scriptsize\begin{tabular}{ c c | c }
+      op1 & op2 & op1 \textbf{||} op2 \\
+      \hline
+      \code{false} & \code{false} & \code{false} \\
+      \code{false} & \code{true} & \code{true} \\
+      \code{true} & \code{false} & \code{true} \\
+      \code{true} & \code{true} & \code{true} \\
+    \end{tabular}}
+    \vskip .5em
+
+    \code{op2} is evaluated only if \code{op1} is \code{false}
+
+  \item[not] Operand's negation (or logical complement)
+    \vskip .5em
+
+    {\scriptsize\begin{tabular}{ c | c }
+      op & \textbf{!}op \\
+      \hline
+      \code{false} & \code{true} \\
+      \code{true}  & \code{false} \\
+    \end{tabular}}
+    \vskip .5em
+
+  \end{description}
+
+\end{frame}
+
+\begin{frame}[fragile]{Example: is a number even?}
+
+  A program that reads a number from input and tells if it's even
+
+  \begin{columns}[T]
+    \begin{column}{.6\textwidth}
+  \uncover<2->{
+    \begin{tikzpicture}
+      [auto,
+      startstop/.style = {rectangle, rounded corners=5pt, draw=black, thick, node font=\scriptsize,
+        text width=3em, align=flush center},
+      inout/.style     = {trapezium, trapezium left angle=60,trapezium right angle=120, thick, draw=green, fill=green!20,
+        text width=4em, align=flush center, node font=\scriptsize},
+      block/.style     = {rectangle, draw=blue, thick, fill=blue!20,align=center, rounded corners=2pt,
+        text width=5em, align=flush center, node font=\scriptsize},
+      decision/.style  = {diamond, aspect=1.5, draw=red, thick, fill=red!20, text width=4em, align=flush center, inner sep=1pt, node font=\scriptsize},
+      line/.style      = {draw, thick, -latex, shorten >=2pt}]
+      \matrix [column sep=0mm,row sep=4mm,ampersand replacement=\&]
+      {
+        % row
+        \& \node [startstop] (start) {start}; \\
+        % row
+        \& \node [inout] (in) {read num}; \\
+        % row
+        \& \node [block,text width=7em] (mod) {r $\leftarrow$ num \textit{mod} 2}; \\
+        % row
+        \& \node [decision] (iszero) {r == 0}; \\[-4mm]
+        % row
+        \node [block,text width=6em] (even) {result $\leftarrow$ true}; \&
+        \& \node [block,text width=6em] (odd) {result $\leftarrow$ false}; \\
+        % row
+        \& \coordinate (join); \\
+        % row
+        \& \node [inout,text width=6em] (out) {write result}; \\
+        % row
+        \& \node [startstop] (stop) {stop}; \\
+      };
+      \begin{scope}[every path/.style=line]
+        \path (start)  -- (in);
+        \path (in)     -- (mod);
+        \path (mod)    -- (iszero);
+        \path (iszero) -| node [near start,above] {\scriptsize{yes}} (even);
+        \path (iszero) -| node [near start,above] {\scriptsize{no}} (odd);
+        \path[-,shorten >=0pt] (even) |- (join);
+        \path[-,shorten >=0pt] (odd)  |- (join);
+        \path (join) -- (out);
+        \path (out)    -- (stop);
+      \end{scope}
+    \end{tikzpicture}
+  }
+    \end{column}
+
+    \begin{column}{.4\textwidth}
+      \begin{codeblock}<3->{
+#include <iostream>
+
+int main()
+\{
+\uncover<4->{\alert<4|trans:0>{  int num;
+  std::cin >{}> num;}}
+\uncover<5->{\alert<5|trans:0>{  int r\{num \% 2\};}}
+\uncover<7->{\alert<7|trans:0>{  bool result;}}
+\uncover<6->{\alert<6|trans:0>{  if (r == 0) \{}}
+\uncover<7->{\alert<7|trans:0>{    result = true;}}
+\uncover<6->{\alert<6|trans:0>{  \} else \{}}
+\uncover<7->{\alert<7|trans:0>{    result = false;}}
+\uncover<6->{\alert<6|trans:0>{  \}}}
+\uncover<9->{  // print 0/1}
+\uncover<8->{\alert<8|trans:0>{  std::cout << result << \bslashn;}}
+\uncover<9->{  // print false/true
+  std::cout << \alert<9|trans:0>{std::boolalpha}
+      << result << \bslashn;}
+\}}\end{codeblock}
+    \end{column}
+
+  \end{columns}
+
+  \uncover<11->{The whole \code{if} can be removed defining \code{bool result\{r == 0\};}}
+
+\end{frame}
+
+\begin{frame}{Exercise: the smallest of three numbers}
+
+  Write a program that reads three numbers from standard input and writes the
+  smallest one to standard output
+
+\end{frame}
+
+\begin{frame}[fragile]{Integer square root}
+
+  Write a program that computes the integer square root of a non-negative
+  integer number, i.e. the largest integer number whose square is not greater
+  than the given number
+
+  \begin{columns}[T]
+    \begin{column}{.5\textwidth}
+      \uncover<2->{\begin{tikzpicture}
+          [auto,
+          startstop/.style = {rectangle, rounded corners=5pt, draw=black, thick, node font=\scriptsize,
+            text width=3em, align=flush center},
+          inout/.style     = {trapezium, trapezium left angle=60,trapezium right angle=120, thick, draw=green, fill=green!20,
+            text width=4em, align=flush center, node font=\scriptsize},
+          block/.style     = {rectangle, draw=blue, thick, fill=blue!20,align=center, rounded corners=2pt,
+            text width=5em, align=flush center, node font=\scriptsize},
+          decision/.style  = {diamond, aspect=1.5, draw=red, thick, fill=red!20, text width=4em, align=flush center, inner sep=1pt, node font=\scriptsize},
+          line/.style      = {draw, thick, -Classical TikZ Rightarrow, shorten >=1pt}]
+          \matrix [column sep=4mm,row sep=3mm,ampersand replacement=\&]
+          {
+            % row
+            \& \node [startstop] (start) {start}; \\
+            % row
+            \& \node [inout] (in) {read $n$}; \\
+            % row
+            \& \node [block] (initi) {$i \gets 1$}; \\[-1mm]
+            % row
+            \& \coordinate (beforecond1); \\
+            % row
+            \node [block] (inc) {$i \gets i + 1$}; \& \node [decision] (cond1) {$i \times i < n$}; \\
+            % row
+            \node [block] (dec) {$i \gets i - 1$};
+            \& \node [decision] (cond2) {$i \times i > n$}; \\[-1mm]
+            % row
+            \& \coordinate (aftercond2); \\
+            % row
+            \& \node [inout] (out) {write $i$}; \\
+            % row
+            \& \node [startstop] (stop) {stop}; \\
+          };
+          \begin{scope}[every path/.style=line]
+            \path (start)  -- (in);
+            \path (in)     -- (initi);
+            \path (initi)  -- (cond1);
+            \path (cond1)  -- node {\scriptsize{no}} (cond2);
+            \path (cond1)  -- node {\scriptsize{yes}} (inc);
+            \path (inc)    |- (beforecond1);
+            \path (cond2)  -- node [near start] {\scriptsize{no}} (out);
+            \path (cond2)  -- node {\scriptsize{yes}} (dec);
+            \path (dec)    |- (aftercond2);
+            \path (out)    -- (stop);
+          \end{scope}
+        \end{tikzpicture}}
+
+    \end{column}
+
+    \begin{column}{.5\textwidth}
+      \begin{codeblock}<3->{
+#include <iostream>
+
+int main()
+\{
+  int n;
+  std::cin >> n;
+  int i\{1\};
+  while (i * i < n) \{
+    ++i;   // equivalent to i = i + 1
+  \}
+  if (i * i > n) \{
+    --i;   // equivalent to i = i - 1
+  \}
+  std::cout << i << \bslashn;
+\}}\end{codeblock}
+    \end{column}
+
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}[fragile]{\code{while} loop}
+
+  \begin{center}
+    \code{while (} \textit{condition-expr} \code{)} \textit{statement}
+  \end{center}
+
+  \pause
+
+  \begin{itemize}[<+->]
+  \item Execute repeatedly \textit{statement} until \textit{condition-expr}
+    becomes false
+  \item \textit{condition-expr} is evaluated at the beginning of each iteration
+    \begin{itemize}
+    \item If \textit{condition-expr} is already \code{false} at the beginning,
+      \textit{statement} is never executed
+    \end{itemize}
+  \item \textit{statement} can be any statement
+    \begin{itemize}
+    \item It's better if the statement is always a block
+    \end{itemize}
+  \item \textit{statement} should modify something so that the evaluation of
+    \textit{condition-expr} may change
+    \begin{itemize}[<.->]
+    \item Otherwise the loop may never terminate
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Sum of the first N numbers}
+  Write a program that reads a non-negative integer number N from standard
+  input, computes the sum of the first N numbers and writes the result to
+  standard output
+
+  \begin{columns}[T]
+
+    \begin{column}{.5\textwidth}
+      \begin{codeblock}<2->{
+#include <iostream>
+
+int main()
+\{
+  int n;
+  std::cin >> n;
+  int sum\{0\}; // or just sum\{\}
+  \alert<3->{int i\{1\};}
+  while (\alert<3->{i <= n}) \{
+    sum += i;   // sum = sum + i
+    \alert<3->{++i};
+  \}
+  std::cout << sum << \bslashn;
+\}}\end{codeblock}
+
+    \end{column}
+
+    \begin{column}{.5\textwidth}
+      \begin{codeblock}<4->{
+#include <iostream>
+
+int main()
+\{
+  int n;
+  std::cin >> n;
+  int sum\{0\};
+
+  \textbf<4>{for} (\alert<4>{int i\{1\}}; \alert<4>{i <= n}; \alert<4>{++i}) \{
+    sum += i;
+
+  \}
+  std::cout << sum << \bslashn;
+\}}\end{codeblock}
+    \end{column}
+
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{\code{for} loop}
+
+  \code{for (} \textit{init-statement} \opt{\textit{condition-expr}} \code{;}
+  \opt{\textit{expression}} \code{)} \textit{statement}
+
+  \pause
+
+  \begin{itemize}[<+->]
+  \item Execute \textit{init-statement}, which may be a single \code{;}
+    \begin{itemize}
+    \item If \textit{init-statement} contains declarations (e.g. the \code{i}
+      variable in the previous example), the scope of the declared names is
+      the loop
+    \end{itemize}
+  \item Execute repeatedly \textit{statement} until \textit{condition-expr} becomes false
+  \item \textit{condition-expr} is evaluated at the beginning of each iteration
+    \begin{itemize}
+    \item If \textit{condition-expr} is already false at the beginning,
+      \textit{statement} is never executed
+    \item But \textit{init-statement} is always executed
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{\code{for} loop \insertcontinuationtext}
+
+  \code{for (} \textit{init-statement} \opt{\textit{condition-expr}} \code{;}
+  \opt{\textit{expression}} \code{)} \textit{statement}
+
+  \pause
+
+  \begin{itemize}[<+->]
+  \item \textit{expression} is evaluated at the end of each iteration
+  \item \textit{statement} and/or \textit{expression} should modify something so
+    that the evaluation of \textit{condition-expr} may change
+    \begin{itemize}[<.->]
+    \item Otherwise the loop may never terminate
+    \end{itemize}
+  \item A \code{for} loop can always be transformed into a \code{while} loop and
+    viceversa
+    \begin{itemize}
+    \item Prefer a \code{for} loop when there is an obvious variable that
+      controls the loop
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Integer square root with a \code{for} loop}
+
+  Write a program that computes the integer square root of a non-negative
+  integer number, i.e. the largest integer number whose square is not greater
+  than the given number
+
+  \begin{columns}[T]
+    \begin{column}{.35\textwidth}
+      \begin{codeblock}
+#include <iostream>
+
+int main()
+\{
+  int n;
+  std::cin >> n;
+  int i\{1\};
+  while (i * i < n) \{
+    ++i;
+  \}
+  if (i * i > n) \{
+    --i;
+  \}
+  std::cout << i << \bslashn;
+\}\end{codeblock}
+    \end{column}
+
+    \begin{column}{.65\textwidth}
+      \begin{codeblock}<2->{
+#include <iostream>
+
+int main()
+\{
+  int n;
+  std::cin >> n;
+  int i\{1\};  // NB outside the loop
+  for ( ; i * i < n; ++i) ;  // or \{\}
+
+
+  if (i * i > n) \{
+    --i;
+  \}
+  std::cout << i << \bslashn;
+\}}\end{codeblock}
+    \end{column}
+
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}{Exercise: the smallest of N numbers}
+
+  Write a program that reads an arbitrary sequence of numbers from standard
+  input and writes the smallest one to standard output
+
+  Hint 1: press Ctrl-D to tell the program there is nothing more to read from
+  standard input
+
+  Hint 2: the expression \code{std::cin.good()} tells if it's still possible to
+  read something from \code{std::cin}
+\end{frame}
+
+\begin{frame}[fragile]{\code{double}}
+
+  Type representing a floating-point number
+
+  \begin{itemize}
+  \item<2-> Set of values: subset of $\mathbb{R}$
+  \item<3-> Operations: addition, subtraction, multiplication, division, comparisons, \ldots
+  \item<4-> Representation: \href{https://en.wikipedia.org/wiki/IEEE_754}{IEEE 754}
+  \item<5-> 64 bits, smallest values $\approx\pm10^{-308}$, largest values $\approx\pm10^{308}$
+  \item<6-> Precision is about 16 decimal digits
+  \item<6-> Literals in the form \opt{\textit{sign}} \textit{significand} \opt{\textit{exponent}}
+    \begin{itemize}
+    \item \code{42.0 1. -1.5 12.34e3 -.34E-3 -1234e-2}
+    \item \code{\ddd{}e\textit{n}}/\code{\ddd{}E\textit{n}} means $\times 10^{n}$
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\code{float}}
+
+  Type representing a floating-point number
+
+  \begin{itemize}
+  \item<2-> Set of values: subset of $\mathbb{R}$
+  \item<3-> Operations: addition, subtraction, multiplication, division, comparisons, \ldots
+  \item<4-> Representation: \href{https://en.wikipedia.org/wiki/IEEE_754}{IEEE 754}
+  \item<5-> 32 bits, smallest values $\approx\pm10^{-38}$, largest values $\approx\pm10^{38}$
+  \item<6-> Precision is about 7 decimal digits
+  \item<6-> Literals in the form \opt{\textit{sign}} \textit{significand} \opt{\textit{exponent}} \code{F}
+    \begin{itemize}
+    \item \code{42.0f 1.F -1.5f 12.34e3F -.34E-3f -1234e-2F}
+    \item Same as double but with an \code{f} or \code{F} suffix
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Handle floating-point numbers with care}
+
+  \begin{itemize}
+  \item<1-> Floating-point numbers are \textbf{not} real numbers
+    \begin{itemize}
+    \item Finite representation $\implies$ there is a previous and a next
+    \end{itemize}
+  \item<2-> When managing floating-point numbers one should take into account
+    rounding errors and inexact representations
+    \begin{codeblock}<3->{
+float x\{1\textquotesingle000\textquotesingle000\textquotesingle000.f\};
+\uncover<4->{std::cout << std::setprecision(10)
+  << x - 32 << \upquote{ } << x << \upquote{ } << x + 32}\uncover<5->{ // 1000000000 1000000000 1000000000}
+\uncover<6->{  << x + 32 - x << \upquote{ } << x - x + 32;}\uncover<7->{    // 0 32}}\end{codeblock}
+  \item<8-> Floating-point math in general is not associative
+  \item<9-> When comparing floating-point numbers avoid the use of equality
+  \item<10-> See \href{https://cr.yp.to/2005-590/goldberg.pdf}{What Every
+      Computer Scientist Should Know About Floating Point Arithmetic}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Standard mathematical functions}
+
+  The \href{https://en.cppreference.com/w/cpp/header/cmath}{\code{cmath}} header
+  includes many ready-to-use mathematical functions
+  \begin{itemize}
+  \item Exponential
+  \item Power
+  \item Trigonometric
+  \item Interpolation
+  \item Hyperbolic
+  \item Floating-point manipulation, classification and comparison
+  \item \ldots
+  \end{itemize}
+
+  \begin{codeblock}<2->{
+#include <cmath>
+\ddd
+double x\{\ddd\};
+std::sqrt(x);
+std::pow(x, .5);
+std::sin(x);
+std::log(x);
+std::abs(x);}\end{codeblock}
+\end{frame}
+
+\begin{frame}[fragile]{Type conversions}
+
+    \begin{itemize}
+    \item A value of type \code{T1} may be converted \textbf{implicitly} to a
+      value of type \code{T2} in order to match the expected type in a certain
+      situation
+      \begin{codeblock}<2->{
+1 + 2.3}\end{codeblock}
+      \begin{itemize}[<3->]
+      \item between numbers and bool
+      \item between signed and unsigned numbers
+      \item between numbers of different size
+      \item between integral and floating-point numbers
+      \item \ldots
+      \end{itemize}
+
+    \item<4-> Conversions sometimes are surprising
+    \item<5-> Conversions can be explicit using \code{static_cast}
+      \begin{codeblock}<.->{
+1 + static_cast<int>(2.3)}\end{codeblock}
+    \item<6-> Mechanims exist to define implicit and explicit conversions
+      involving user-defined types
+
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{\code{const}-safety}
+
+  \begin{itemize}
+  \item Data qualified as \code{const} is logically immutable
+  \item Data that is meant to be immutable should be \code{const}
+  \end{itemize}
+
+  \begin{codeblock}<2->{
+int \alert{const} x\{1\textquotesingle000\textquotesingle000\textquotesingle000\}; // or const int
+\uncover<3->{std::cout << x + 32;    // ok, read-only}
+\uncover<4->{x += 32;                // error, trying to modify}
+\uncover<5->{int const y;            // error, not initialized and not modifiable later}
+}\end{codeblock}
+
+\begin{codeblock}<6->{
+std::string \alert{const} message\{"Hello"\};
+\uncover<7->{std::cout << message + " Francesco";      // ok, read-only}
+\uncover<8->{message += " Francesco";                  // error, trying to modify}
+\uncover<9->{std::string const empty_message;          // ok! empty string}}\end{codeblock}
+
+  \begin{itemize}[<10->]
+  \item Primitive types (e.g. \code{int}) and user-defined types such as
+    \code{std::string}) behave differently with respect to \textit{default
+      initialization}, i.e. without an explicit initial value
+    \begin{itemize}
+    \item User-defined types can define what default initialization means
+    \item For \code{std::string} it means ``empty string''
+    \item More later
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
