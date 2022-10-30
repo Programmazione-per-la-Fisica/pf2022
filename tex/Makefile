@@ -9,6 +9,7 @@ pf2022.pdf: $(TEXFILES)
 	echo '\input{introduction.tex}' > contents.tex
 	echo '\input{basics.tex}' >> contents.tex
 	echo '\input{flowcontrol.tex}' >> contents.tex
+	echo '\input{functions.tex}' >> contents.tex
 	$(LATEX) pf2022
 	$(LATEX) pf2022
 	rm contents.tex
@@ -29,6 +30,12 @@ flowcontrol.pdf: pf2022.tex frontmatter.tex flowcontrol.tex
 	echo '\input{flowcontrol.tex}' > contents.tex
 	$(LATEX) -jobname=flowcontrol $(TRANS)
 	$(LATEX) -jobname=flowcontrol $(TRANS)
+	rm contents.tex
+
+functions.pdf: pf2022.tex frontmatter.tex functions.tex
+	echo '\input{functions.tex}' > contents.tex
+	$(LATEX) -jobname=functions $(TRANS)
+	$(LATEX) -jobname=functions $(TRANS)
 	rm contents.tex
 
 clean:
