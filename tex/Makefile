@@ -10,6 +10,7 @@ pf2022.pdf: $(TEXFILES)
 	echo '\input{basics.tex}' >> contents.tex
 	echo '\input{flowcontrol.tex}' >> contents.tex
 	echo '\input{functions.tex}' >> contents.tex
+	echo '\input{reference.tex}' >> contents.tex
 	$(LATEX) pf2022
 	$(LATEX) pf2022
 	rm contents.tex
@@ -36,6 +37,12 @@ functions.pdf: pf2022.tex frontmatter.tex functions.tex
 	echo '\input{functions.tex}' > contents.tex
 	$(LATEX) -jobname=functions $(TRANS)
 	$(LATEX) -jobname=functions $(TRANS)
+	rm contents.tex
+
+reference.pdf: pf2022.tex frontmatter.tex reference.tex
+	echo '\input{reference.tex}' > contents.tex
+	$(LATEX) -jobname=reference $(TRANS)
+	$(LATEX) -jobname=reference $(TRANS)
 	rm contents.tex
 
 clean:

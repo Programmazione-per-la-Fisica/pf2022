@@ -1,0 +1,925 @@
+% !TeX root = ./pf2022.tex
+
+%\includeonlyframes{current}
+
+\section{Pointers and references}
+
+\begin{frame}[fragile]{Passing by value may be inconvenient}
+
+  \begin{itemize}
+  \item Consider a function that increments an \code{int} object
+
+  \begin{codeblock}
+\uncover<2->{void increment(\alert{???} n) \{}
+\uncover<2->{  // ++n}
+\uncover<2->{\}}
+
+int number\{42\};
+increment(number);
+// number == 43\end{codeblock}
+
+  \item NB The function does not \textbf{return} the new value; it modifies the
+    passed object \textbf{in place}
+
+  \item<2-> We cannot write \code{void increment(int n)}, because the function would
+    modify a \textbf{copy} of the original object
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Passing by value may be expensive}
+
+  Let's consider a function that counts the number of words in a string
+
+  \begin{columns}
+    \begin{column}{.5\textwidth}
+
+      \begin{codeblock}
+int count_words(std::string \alert<5>{s})
+\{
+  int count\{0\};
+  \ddd s \ddd
+  return count;
+\}
+
+\alert<2|trans:0>{int main()
+\{
+  std::string text}\alert<3|trans:0>{\{\ddd\}};
+  \alert<2|trans:0>{int const res}\{\alert<4|trans:0>{count_words(}\alert<5>{text}\alert<4|trans:0>{)}\};
+  std::cout <{}< res <{}< \bslashn;
+\alert<2|trans:0>{\}}\end{codeblock}
+
+      \begin{itemize}
+      \item<5-> \code{s} is a \textbf{copy} of \code{text}
+      \item<6-> I'm slightly cheating: not all string memory goes on the stack
+      \end{itemize}
+
+    \end{column}
+
+    \begin{column}{.4\textwidth}
+
+      \begin{tikzpicture}[
+        mem/.style={
+          minimum width=2cm,
+          inner sep=0pt,
+          outer sep=0pt,
+          draw=black
+        },
+        frame/.style={
+          minimum width=2cm,
+          inner sep=0pt,
+          outer sep=0pt,
+          draw=black,
+          thick,
+          fill=green!50!white
+        },
+        var/.style={
+          node font=\ttfamily\scriptsize,
+          minimum height=.5cm,
+          minimum width=2cm,
+          draw=black,
+          fill=green!30!white,
+          inner sep=0pt,
+          outer sep=0pt
+        },
+        anchor=south west
+        ]
+        \node at (0,0) [
+          mem,
+          minimum height=6cm
+        ] {};
+        \visible<2->{
+          \node (main) at (0,3) [
+            frame,
+            minimum height=2.5cm,
+            label={[yshift=1.1cm]0:\scriptsize\tt main}
+          ] {};
+          \node (result) [
+            var,
+            above=3ex of main.south,
+            label={180:\scriptsize\tt res}
+          ] {};
+          \node (text) [
+            var,
+            minimum height=1cm,
+            text width=2cm,
+            align=center,
+            above=0pt of result,
+            label={180:\scriptsize\tt text}
+          ] {\only<3->{\tiny\textit{Nel mezzo del cammin di nostra vita\ldots}}};
+        }
+        \visible<4->{
+          \node (countwords) [
+            frame,
+            below=0pt of main,
+            minimum height=2.5cm,
+            label={[yshift=1.1cm]0:\scriptsize\tt count_words}
+          ] {};
+          \node (count) [
+            var,
+            above=3ex of countwords.south,
+            label={180:\scriptsize\tt count}
+          ] {};
+          \node (s) [
+            var,
+            minimum height=1cm,
+            text width=2cm,
+            align=center,
+            above=0pt of count,
+            label={180:\scriptsize\tt s}
+          ] {\only<5->{\tiny\textit{Nel mezzo del cammin di nostra vita\ldots}}};
+        }
+      \end{tikzpicture}
+    \end{column}
+
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Hexadecimal notation}
+
+  \begin{columns}
+    \begin{column}{.75\textwidth}
+      \begin{itemize}
+      \item<1-> Numbers in hexadecimal notation are represented in base sixteen
+      \item<2-> Each digit has a value between zero and fifteen (included)
+      \item<2-> Sixteen symbols are needed for the digits
+        \begin{itemize}
+        \item 0 ... 9, A, B, C, D, E, F (also lowercase)
+        \end{itemize}
+      \item<3-> In C++ numeric literals (i.e. constants) can be expressed in hexadecimal
+        notation, prepending \code{0x} (or \code{0X}) to the hexadecimal representation
+        \begin{itemize}
+        \item \code{0x9 == 9}, \code{0xA == 10}, \code{0x10 == 16}
+        \end{itemize}
+      \item<3-> Easy conversion between hex and binary representation: each hex digit
+        corresponds to four bits
+      \item<4-> Hex literals are typically used to represent raw contents of memory or
+        memory addresses
+      \end{itemize}
+
+    \end{column}
+
+    \begin{column}{.25\textwidth}
+      \visible<3->{
+        \small{
+          \begin{tabular}[t]{|r|r|r|}
+            Hex & Dec & Bin \\
+            \hline
+            0 &  0 & 0000 \\
+            1 &  1 & 0001 \\
+            2 &  2 & 0010 \\
+            3 &  3 & 0011 \\
+            4 &  4 & 0100 \\
+            5 &  5 & 0101 \\
+            6 &  6 & 0110 \\
+            7 &  7 & 0111 \\
+            8 &  8 & 1000 \\
+            9 &  9 & 1001 \\
+            A & 10 & 1010 \\
+            B & 11 & 1011 \\
+            C & 12 & 1100 \\
+            D & 13 & 1101 \\
+            E & 14 & 1110 \\
+            F & 15 & 1111
+          \end{tabular}
+        }
+      }
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}[fragile,label=current]{Pointers}
+
+  Where in memory does a given object reside?
+
+  \begin{tikzpicture}[
+      mem/.style={
+        node font=\ttfamily\scriptsize,
+        minimum height=.5cm,
+      },
+      location/.style={
+        mem,
+        draw=black!50,
+        minimum width=1.2cm,
+        fill=green!20!white,
+      },
+      address/.style={
+        mem,
+        draw=black,
+        minimum width=.3cm,
+        densely dotted,
+      },
+      every node/.style={
+        mem,
+      },
+      anchor=south west,
+      node distance=0,
+    ]
+
+    \visible<2->{\node (memory) at (0,0) [mem, draw=black!50, minimum width=.9\textwidth] {};}
+    \visible<3->{\node (begin mem) [address, right=of memory.west, "0x0000" above] {};}
+    \visible<3->{\node (end mem) [address, left=of memory.east, "0xffff" above] {};}
+
+    \visible<6->{\node (pp) at (1.2,0) [location, "pp" below] {\alert<6|trans:0>{0xbad0}};}
+    \visible<6->{\node (addr pp) [address, right=of pp.west, "0xaa04" above] {};}
+
+    \visible<2->{\node (i) [location, right=0.5 of pp, "i" below,] {4321};}
+    
+    % the colon between braces below is needed to avoid that the label command
+    % interprets the colon
+    % search "Handling commas and colons inside the text" in the tikz manual
+    \visible<3->{\node (addr i) [address, right=of i.west,
+      "\alert<5|trans{:}0>{0xab00}" above] {};}
+
+    \visible<5->{\node (p) [location, right=0.5 of i, "p" below] {
+        \alt<-6>{\alert<5|trans:0>{0xab00}}{\alert<7-8|trans:0>{0xcd00}}};
+    }
+    \visible<5->{\node (addr p) [address, right=of p.west, "\alert<6|trans{:}0>{0xbad0}" above] {};}
+
+    \visible<2->{\node (j) [location, right=0.5 of p, "j" below,] {1234};}
+    \visible<3->{\node (addr j) [address, right=of j.west, "\alert<7|trans{:}0>{0xcd00}" above] {};}
+
+    \visible<8->{\node (q) [location, right=0.5 of j, "q" below,] {\alert<8|trans:0>{0xcd00}};}
+    \visible<8->{\node (addr q) [address, right=of q.west, "0xcb80" above] {};}
+
+    \draw<5-6|trans:0>[{Circle[length=2pt]}-Stealth,opacity=.6] ([yshift=.1cm]p.center) .. controls +(-1,.5) .. (addr i.north);
+    \draw<7->[{Circle[length=2pt]}-Stealth,opacity=.6] ([yshift=.1cm]p.center) .. controls +(1,.5) .. (addr j.north);
+    \draw<6->[{Circle[length=2pt]}-Stealth,opacity=.6] ([yshift=-.1cm]pp.center) .. controls +(2,-.5) .. (addr p.south);
+    \draw<8->[{Circle[length=2pt]}-Stealth,opacity=.6] ([yshift=.1cm]q.center) .. controls +(-1,.5) .. (addr j.north);
+
+  \end{tikzpicture}
+
+  \begin{codeblock}<2->{
+\visible<2->{int i\{4321\};}
+\visible<2->{int j\{1234\};}
+\visible<4->{std::cout <{}< \alert<4>{&}i;  // 0xab00, \alert<4>{address-of operator}}
+\visible<4->{std::cout <{}< \alert<4>{&}j;  // 0xcd00}
+\visible<5->{int\alert<5>{*} p\{&i\};       // \alert<5>{pointer declarator}}
+\visible<6->{std::cout <{}< &p;  // 0xbad0}
+\visible<6->{int\alert<5>{**} pp\{&p\};     // &p is of type int**}
+\visible<7->{p = &j;}
+\visible<8->{int* q\{p\};        // p and q point to the same object}}\end{codeblock}
+
+  \visible<5->{Note that \code{int*} is a new type}\visible<6->{ and so is
+    \code{int**}}
+
+
+\end{frame}
+
+\begin{frame}[fragile,label=current]{Pointers \insertcontinuationtext}
+  
+  \begin{tikzpicture}[
+      mem/.style={
+        node font=\ttfamily\scriptsize,
+        minimum height=.5cm,
+      },
+      location/.style={
+        mem,
+        draw=black!50,
+        minimum width=1.2cm,
+        fill=green!20!white,
+      },
+      address/.style={
+        mem,
+        draw=black,
+        minimum width=.3cm,
+        densely dotted,
+      },
+      every node/.style={
+        mem,
+      },
+      anchor=south west,
+      node distance=0,
+    ]
+
+    \visible<1->{\node (memory) at (0,0) [mem, draw=black!50, minimum width=.9\textwidth] {};}
+    \visible<1->{\node (begin mem) [address, right=of memory.west, "0x0000" above] {};}
+    \visible<1->{\node (end mem) [address, left=of memory.east, "0xffff" above] {};}
+
+    \visible<3->{\node (k) at (1.2,0) [location, "k" below,] {\alert<3|trans:0>{1234}};}
+    \visible<3->{\node (addr k) [address, right=of k.west, "0xaacc" above] {};}
+
+    \visible<1->{\node (p) [location, right=0.5 of k, "p" below] {0xcd00};}
+    \visible<1->{\node (addr p) [address, right=of p.west, "0xbad0" above] {};}
+
+    \visible<1->{\node (j) [location, right=0.5 of p, "j" below,] {
+        \alt<-3>
+            {1234}
+            {\alt<4>
+              {\alert<4|trans:0>{5678}}
+              {\alert<5|trans:0>{5679}}}};
+    }
+    \visible<1->{\node (addr j) [address, right=of j.west, "0xcd00" above] {};}
+
+    \visible<6-|trans:0>{\node (q) [location, right=0.5 of j, "q" below,] {\alt<6>{\alert<6>{0xcd00}}{\alert<7>{\textit{null}}}};}
+    \visible<trans>{\node (q) [location, right=0.5 of j, "q" below,] {\textit{null}};}
+    \visible<6->{\node (addr q) [address, right=of q.west, "0xcb80" above] {};}
+
+    \draw<1->[{Circle[length=2pt]}-Stealth,opacity=.6] ([yshift=.1cm]p.center) .. controls +(1,.5) .. (addr j.north);
+    \draw<6|trans:0>[{Circle[length=2pt]}-Stealth,opacity=.6] ([yshift=.1cm]q.center) .. controls +(-1,.5) .. (addr j.north);
+
+  \end{tikzpicture}
+
+  \begin{codeblock}
+\visible<1->{int j\{1234\};}
+\visible<1->{int* p\{&j\};}
+\visible<2->{std::cout <{}< \alert<2->{*}p; // 1234, \alert<2>{dereference} operator}
+\visible<3->{int k\{\alert<3->{*}p\};       // k is a copy of j}
+\visible<4->{\alert<4->{*}p = 5678;}
+\visible<5->{++\alert<5->{*}p;            // or ++(*p) for more clarity}
+\visible<6->{int* q\{p\};}
+\visible<7->{q = nullptr;}
+\visible<8->{\alert<8->{*}q;              // \alert{undefined behavior}}\end{codeblock}
+
+  \visible<8->{Dereferencing a null pointer is a logical error (i.e. a bug)}
+
+\end{frame}
+
+\begin{frame}[fragile]{Pointers \insertcontinuationtext}
+
+  \begin{itemize}
+  \item<1-> \textit{address-of} operator: \alert{\code{\&}}
+    \begin{itemize}
+    \item Given an object, it returns its address in memory
+    \end{itemize}
+  \item<2-> \textit{dereference} operator: \alert{\code{*}}
+    \begin{itemize}
+    \item Given a pointer to an object, it gives access to that very object
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Passing a pointer}
+
+  \begin{columns}[T]
+    \begin{column}{.5\textwidth}
+      \begin{codeblock}
+void increment(int\alert{*} n) \{
+  ++(\alert{*}n);
+\}
+
+int number\{42\};
+increment(\alert{&}number);
+// number == 43\end{codeblock}
+      
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{codeblock}
+int count_words(std::string\alert{*} s)
+\{
+  int count\{0\};
+  \ddd \alert{*}s \ddd
+  return count;
+\}
+
+std::string text\{\ddd\};
+count_words(\alert{&}text);\end{codeblock}
+    \end{column}
+  \end{columns}
+
+  \begin{itemize}
+  \item The caller takes the address of the object and passes it to the function
+  \item The function dereferences the pointer to get access to the object
+  \item Be careful not to dereference a null pointer
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{References}
+
+  \begin{itemize}
+  \item A variable declared as a \alert{reference} of a type \code{T} is another
+    name (an \textit{alias}) for an existing object of type \code{T}
+  \end{itemize}
+
+  \begin{tikzpicture}[
+      mem/.style={
+        node font=\ttfamily\scriptsize,
+        minimum height=.5cm,
+      },
+      location/.style={
+        mem,
+        draw=black!50,
+        minimum width=2cm,
+        fill=green!20!white,
+      },
+      every node/.style={
+        mem,
+      },
+      anchor=south west,
+      node distance=0,
+    ]
+
+    \visible<2->{
+      \node (memory) at (0,0) [mem, draw=black!50, minimum width=\textwidth] {};
+
+      \node (i) at (2,0) [
+        location,
+        "i" below,
+        "\alert<3>{ri}" {visible on=<3->,yshift=-0.3cm,below}
+      ] {\only<-4|trans:0>{12}\only<5-6|trans:0>{34}\only<7-|trans>{56}};
+
+      \node (j) at (7,0) [
+        location,
+        "j" below
+      ] {56};
+    }
+
+  \end{tikzpicture}
+
+  \begin{codeblock}<2->{
+int i\{12\};
+int j\{56\};
+\uncover<3->{int\alert<3>{\&} ri\{i\};          // reference declarator}
+\uncover<4->{ri == 12;            // true}
+\uncover<5->{ri = 34;}
+\uncover<6->{ri == 34 \&\& i == 34; // true}
+\uncover<7->{ri = j;}
+\uncover<8->{ri == 56 \&\& i == 56; // true}
+\uncover<9->{int& r;              // error}}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{References \insertcontinuationtext}
+
+  \begin{itemize}[<+->]
+  \item A reference must be initialized to refer to a valid object
+    \begin{itemize}[<.->]
+    \item A reference cannot be \textit{null}
+    \end{itemize}
+  \item A reference cannot \textit{rebind} (be re-associated) to another object
+  \item For a given type \code{T}, \code{T\&} is a \textit{compound} type,
+    distinct from \code{T}
+  \item Dereferencing a pointer gives back a reference to that object
+    \begin{codeblock}<.->{
+int i\{42\};
+int* p\{&i\};
+int& r\{*p\}; // i and r are names for the same object}\end{codeblock}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Passing by reference}
+
+  \begin{codeblock}
+void increment(int\alert{&} n) \{
+  ++\alert{n};
+\}
+
+int number\{42\};
+increment(\alert{number});
+// number == 43\end{codeblock}
+
+  \begin{itemize}
+  \item There is no difference in the caller compared to pass-by-value
+  \item There is no difference in the body of the function compared to pass-by-value
+  \item The only visual clue is in the parameter declaration
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Passing by reference \insertcontinuationtext}
+  \begin{columns}
+    \begin{column}{.5\textwidth}
+
+      \begin{codeblock}
+int count_words(std::string\alert<1->{\&} s)
+\{
+  \alert<5|trans:0>{int count\{0\};}
+  \alert<6|trans:0>{\ddd} \alert<6>{s} \alert<6|trans:0>{\ddd} // just use s
+  \alert<7|trans:0>{return count;}
+\}
+
+\alert<2|trans:0>{int main()
+\{
+  std::string text}\alert<3|trans:0>{\{\ddd\}};
+  \alert<2|trans:0>{int const res}\{\alert<4|trans:0>{count_words(}\alert<4>{text}\alert<4|trans:0>{)}\};
+  std::cout <{}< res <{}< \bslashn;
+\alert<2|trans:0>{\}}\end{codeblock}
+
+      \uncover<8>{}
+      \uncover<9>{}
+
+      \vskip .5 cm
+
+      \visible<4->{\scriptsize (*) In general it's unspecified if a reference
+        occupies storage. Here probably it does and a pointer (called s$'$) is
+        passed behind the scenes.}
+
+    \end{column}
+
+    \begin{column}{.4\textwidth}
+
+      \begin{tikzpicture}[
+        mem/.style={
+          minimum width=2cm,
+          inner sep=0pt,
+          outer sep=0pt,
+          draw=black
+        },
+        frame/.style={
+          minimum width=2cm,
+          inner sep=0pt,
+          outer sep=0pt,
+          draw=black,
+          thick,
+          fill=green!50!white
+        },
+        var/.style={
+          node font=\ttfamily\scriptsize,
+          minimum height=.5cm,
+          minimum width=2cm,
+          draw=black,
+          fill=green!30!white,
+          inner sep=0pt,
+          outer sep=0pt
+        },
+        anchor=south west
+        ]
+        \node at (0,0) [
+          mem,
+          minimum height=6cm
+        ] {};
+        \visible<2-8>{
+          \node (main) at (0,3) [
+            frame,
+            minimum height=2.5cm,
+            label={[yshift=1.1cm]0:\scriptsize\tt main}
+          ] {};
+          \node (result) [
+            var,
+            above=3ex of main.south,
+            label={180:\scriptsize\tt res}
+          ] {\only<7-8>{12345}};
+          \node (text) [
+            var,
+            minimum height=1cm,
+            text width=2cm,
+            align=center,
+            above=0pt of result,
+            "\scriptsize\tt text" left,
+            "\scriptsize\tt\alert<4-7>{s}" {visible on=<4-7>,xshift=-.8cm,left}
+          ] {\only<3->{\tiny\textit{Nel mezzo del cammin di nostra vita\ldots}}};
+        }
+        \visible<4-7>{
+          \node (countwords) [
+            frame,
+            below=0pt of main,
+            minimum height=1.7cm,
+            label={[yshift=.5cm]0:\scriptsize\tt count_words}
+          ] {};
+          \node (count) [
+            var,
+            above=3ex of countwords.south,
+            label={180:\scriptsize\tt count}
+          ] {\only<5>{0}\only<6-7>{12345}};
+          \node (sref) [
+            var,
+            above=0pt of count,
+            label={180:\scriptsize\tt s$'$}
+          ] {(*)};
+        }
+      \end{tikzpicture}
+    \end{column}
+
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{\code{const} and references}
+
+  \begin{codeblock}
+std::string text\{\ddd\};
+\uncover<2->{std::string\alert{\&} rtext\{text\};        // ok, can read/modify text via rtext}
+\uncover<3->{std::string \alert{const\&} crtext\{text\}; // ok, crtext is a read-only view of text}\end{codeblock}
+
+  \begin{codeblock}<4->{
+std::string \alert{const} text\{\ddd\};
+\uncover<5->{std::string\alert{\&} rtext\{text\};        // error, else could modify text via rtext}
+\uncover<6->{std::string \alert{const\&} crtext\{text\}; // ok, can only read text via crtext}}\end{codeblock}
+
+  \begin{codeblock}<7->{
+int count_words(std::string \alert{const\&} s)
+\{
+  // this function can only read from s
+   \ddd
+\}}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{\code{const} and pointers}
+
+  \begin{codeblock}
+std::string text\{\ddd\};
+\uncover<2->{std::string\alert{*} ptext\{&text\};        // ok, can read/modify name via *ptext}
+\uncover<3->{std::string \alert{const*} cptext\{&text\}; // ok, can only read text via *cptext}\end{codeblock}
+
+  \begin{codeblock}<4->{
+std::string \alert{const} text\{\ddd\};
+\uncover<5->{std::string\alert{*} ptext\{&text\};        // error, else could modify text via *ptext}
+\uncover<6->{std::string \alert{const*} cptext\{&text\}; // ok, can only read text via *cptext}}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{How to pass arguments to functions}
+  \begin{itemize}
+  \item For input parameters
+    \begin{itemize}
+    \item<1-> If the type is primitive, pass by value
+      \begin{codeblock}<.->{
+int isqrt(int n);        // good
+int isqrt(int const& n); // bad! pessimization}\end{codeblock}
+    \item<2-> Otherwise pass by const reference
+      \begin{codeblock}<.->{
+int count\_words(std::string const\&);}\end{codeblock}
+    \end{itemize}
+  \item<3-> For output parameters, prefer to return a value or pass by non-const
+    reference
+    \begin{codeblock}
+int read_from_cin();      // may be more difficult to overload for other types
+void read_from_cin(int& n);\end{codeblock}
+  \item<4-> For input-output parameters, pass by non-const reference
+    \begin{codeblock}
+void to_lowercase(std::string& s);\end{codeblock}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Returning a reference}
+
+  \begin{itemize}
+  \item<1-> A function can return a reference only if the referenced object survives
+    the end of the function
+    \begin{itemize}[<.->]
+    \item Otherwise, in the caller, the reference would refer to an object that
+      doesn't exist anymore
+    \end{itemize}
+  \item<2-> In particular do not return a reference to a function local variable
+
+    \begin{columns}
+      \begin{column}{.5\textwidth}
+        \begin{codeblock}
+// bad
+int& add(int a, int b) \{
+  int result\{a + b\};
+  return result;
+\}\end{codeblock}
+      \end{column}
+      \begin{column}{.5\textwidth}
+        \begin{codeblock}
+// acceptable
+int& increment(int& a) \{
+  ++a;
+  return a;
+\}\end{codeblock}
+      \end{column}
+    \end{columns}
+
+  \item<3-> Useful to chain multiple function calls on the same object
+    \begin{codeblock}
+std::string& to_lower(std::string& s) \{ \ddd ; return s; \}
+std::string& trim_right(std::string& s) \{ \ddd ; return s; \}
+std::string& trim_left(std::string& s) \{ \ddd ; return s; \}
+
+std::string s\{\ddd\};
+trim_left(trim_right(tolower(s)));\end{codeblock}
+
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]{\textit{range-for} loop}
+
+    \code{for (} \textit{range-declaration} \code{:} \textit{range-expression} \code{)} \textit{statement}
+
+  \begin{itemize}
+  \item Simplified form of a \code{for} loop, to iterate on all the elements of
+    a \textit{range} (sequence), such as a string of characters
+  \item<2-> Execute repeatedly \textit{statement} for all the elements of the range
+  \item<3-> \textit{range-declaration} declares a variable of the same type of
+    an element of the range
+    \begin{itemize}
+    \item Can (and should) be a (const) reference
+    \end{itemize}
+  \item<4-> \textit{range-expression} represents the range to iterate over
+  \item<5-> More on ranges later
+  \end{itemize}
+
+  \begin{codeblock}
+std::string s\{"Hello!"\};
+for (char& c : s) \{
+  c = std::toupper(c); 
+\}
+
+for (int i : \{1, 2, 3, 4, 5\}) \{
+  std::cout << i << \upquote{ };
+\}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{\code{auto}}
+
+  Let the compiler deduce the type of a variable from the initializer, i.e. from
+  the expression used to initialize the object
+
+  \begin{codeblock}<2->{
+auto z;                       \uncover<3->{// error, no initializer
+auto i\{0\};                    }\uncover<4->{// int
+auto const f\{0.F\};            }\uncover<5->{// float const
+auto r\{i + f\};                }\uncover<6->{// float
+auto s\{std::string\{"hello"\}\}; }\uncover<7->{// std::string
+auto& rs\{s\};                  }\uncover<8->{// std::string&
+auto const& cri\{i\};           }\uncover<9->{// int const&
+auto j\{rs\};                   }\uncover<10->{// std::string
+auto& g\{f\};                   }\uncover<11->{// float const&
+auto p\{&i\};                   }\uncover<12->{// int*
+auto q\{p\};                    }\uncover<13->{// int*
+auto* t\{p\};                   }\uncover<14->{// int*}}\end{codeblock}
+
+  \begin{itemize}
+  \item<10-> \code{auto} never deduces a reference
+  \item<11-> \code{auto} preserves constness of references
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\code{auto}/trailing return type}
+
+  \begin{itemize}
+  \item When the return type of a function is \code{auto} the compiler will
+    deduce it from the return statement(s)
+    \begin{itemize}
+    \item Only usable in a function definition
+    \end{itemize}
+
+    \begin{codeblock}
+auto isqrt(int n)    // auto deduced as int
+\{
+  int result;
+  \ddd
+  return result;
+\}
+\end{codeblock}
+
+  \item<2-> If there are multiple return statements their expressions must have the
+    same type
+  \item<3-> Trailing return type
+    \begin{codeblock}
+int foo(\ddd);
+auto foo(\ddd) -> int; // equivalent\end{codeblock}
+
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Enumerations}
+
+  \begin{itemize}[<+->]
+  \item An \textit{enumeration} is a distinct type with named constants, called
+    \textit{enumerators}
+
+  \begin{codeblock}
+enum class Operator \{ Plus, Minus, Multiplies, Divides \};\end{codeblock}
+
+  \item When used, an enumerator is specified with the name of the enumeration
+    followed by the scope-resolution operator (\code{::})
+
+    \begin{codeblock}
+auto op\{Operator::Plus\}; // op is of type Operator\end{codeblock}
+
+  \item By default, an enumerator has the value of the previous enumerator
+    incremented by one and the first enumerator has value $0$
+  \item An enumerator can be given a value explicitly
+    \begin{codeblock}<.->{
+enum class Operator \{ Plus = -2, Minus, Multiplies = 42, Divides \};}\end{codeblock}
+    The values are respectively $-2$, $-1$, $42$ and $43$.
+
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Enumerations \insertcontinuationtext}
+
+  \begin{itemize}[<+->]
+  \item An enumeration has an integral \textit{underlying type}, by default \code{int}
+  \item A different underlying type can be selected
+    \begin{codeblock}<.->{
+enum class byte : unsigned char \{ \};}\end{codeblock}
+
+    Note that in this case there are no enumerators $\rightarrow$ a way to define a
+    new integral type different from the underlying type
+
+  \item All values of the underlying type are valid values for the enumeration
+    object
+
+    \begin{codeblock}<.->
+Operator op\{55\};  // ok\end{codeblock}
+
+  \item Conversions to the underlying type need to be explicit
+
+    \begin{codeblock}<.->
+int i\{Operator::Plus\};                     // error
+auto i\{static_cast<int>(Operator::Plus)\};  // ok\end{codeblock}
+
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Enumerations \insertcontinuationtext}
+
+  \begin{itemize}[<+->]
+  \item There is also a less strict version of an enumeration: the
+    \textit{unscoped} enumeration
+    \begin{codeblock}
+enum Operator \{ Plus, Minus, Multiplies, Divides \}; // NB no class\end{codeblock}
+
+  \item The symbols of the enumerators are visible in the enclosing scope
+    \begin{itemize}[<.->]
+    \item i.e. the enumerators are not specified with the name of the
+      enumeration followed by \code{::}
+    \end{itemize}
+
+    \begin{codeblock}<.->
+Operator op\{Plus\};  // ok, no need to use Operator::
+\end{codeblock}
+
+  \item The conversion to the underlying type is implicit
+    \begin{codeblock}<.->
+int i\{Plus\};  // ok\end{codeblock}
+
+  \item Prefer the scoped enumeration
+
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{The \code{switch} statement}
+
+  The \code{switch} statement transfers control to one of multiple statements,
+  depending on the value of a condition
+
+  \begin{codeblock}<2->{
+double compute(char op, double left, double right)
+\{
+  double result;
+
+  switch (op) \{
+    case \upquote{+}:
+      result = left + right;
+      break;
+    \ddd
+    case \upquote{/}:
+      result = (right != 0.) ? left / right : 0.;
+      break;
+    default:
+      result = 0.;
+  \}
+
+  return result;
+\}}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{The \code{switch} statement \insertcontinuationtext}
+
+  \begin{itemize}
+  \item The condition is an expression whose evaluation gives an integral or
+    enumeration value
+    \begin{itemize}
+    \item Cannot switch on strings, for example
+    \end{itemize}
+
+  \item An enumeration plays well with \code{switch} statements
+
+    \begin{codeblock}
+double compute(Operator op, double left, double right)
+\{
+  switch (op) \{
+    case Operator::Plus:       return left + right;
+    case Operator::Minus:      return left - right;
+    case Operator::Multiplies: return left * right;
+    case Operator::Divides:    return right != 0. ? left / right : 0.;
+    default: return 0.;
+  \}
+\}\end{codeblock}
+
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The \code{switch} statement \insertcontinuationtext}
+  \begin{itemize}
+  \item Each statement, possibly compound, is introduced either by a \code{case}
+    label or by a \code{default} label
+  \item Each \code{case} label specifies a unique integral constant
+  \item Typically each statement is followed by a \code{break} statement, to
+    jump after the \code{switch}, otherwise control \textit{falls through} the
+    next instruction, even if this is part of a statement introduced by another
+    label
+    \begin{itemize}
+    \item The compiler typically warns about falling through, but sometimes it's
+      ok and the warning can be silenced with the \code{[[fallthrough]]}
+      \textit{attribute}
+    \end{itemize}
+  \item There can be at most one \code{default} label, not necessarily at the
+    end
+  \item The same statement can be introduced by multiple \code{case} labels
+  \end{itemize}
+
+\end{frame}
