@@ -1,0 +1,288 @@
+% !TeX root = ./pf2022.tex
+
+%\includeonlyframes{current}
+
+\section{Templates}
+
+\begin{frame}[fragile]{Class template}
+
+  \begin{itemize}
+  \item<1-> Let's consider again the \code{Complex} class
+  \item<2-> What if we want \code{float} members?
+  \end{itemize}
+
+  \begin{columns}[t]
+
+  \begin{column}{.5\textwidth}
+    \begin{codeblock}<1->{
+class Complex \{
+  \alert{double} r;
+  \alert{double} i;
+ public:
+  Complex(
+      \alert{double} x = \alert{double}\{\}
+    , \alert{double} y = \alert{double}\{\}
+  ) : r\{x\}, i\{y\} \{\}
+  \alert{double} real() const \{ return r; \}
+  \alert{double} imag() const \{ return i; \}
+\};}\end{codeblock}
+
+  \end{column}
+  \begin{column}{.5\textwidth}
+    \begin{codeblock}<2->{
+class Complex \{
+  \alert{float} r;
+  \alert{float} i;
+ public:
+  Complex(
+      \alert{float} x = \alert{float}\{\}
+    , \alert{float} y = \alert{float}\{\}
+  ) : r\{x\}, i\{y\} \{\}
+  \alert{float} real() const \{ return r; \}
+  \alert{float} imag() const \{ return i; \}
+\};}\end{codeblock}
+
+  \end{column}
+
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}[fragile]{Class template \insertcontinuationtext}
+
+  We can transform \code{Complex} into a \textit{template}, with the
+  floating-point type a parameter of that template
+
+  \begin{codeblock}{
+template<typename \alert{FP}> // or, template<class FP>
+class Complex \{
+  \uncover<9->{static_assert(std::is_floating_point_v<FP>); // (*)}
+  \alert{FP} r;
+  \alert{FP} i;
+ public:
+  Complex(\alert{FP} x = \alert{FP}\{\}, \alert{FP} y = \alert{FP}\{\}) : r\{x\}, i\{y\} \{\}
+  \alert{FP} real() const \{ return r; \}
+  \alert{FP} imag() const \{ return i; \}
+\};
+
+\uncover<2->{Complex c;                     // error}
+\uncover<3->{Complex<double> d;             // instantiation of a Complex<double> type}
+\uncover<4->{Complex<float> f;              // different type than d}
+\uncover<5->{Complex e\{1.,1.\};              // Complex<double> deduced}
+\uncover<6->{d + e;                         // ok}
+\uncover<7->{d + f;                         // possibly error}
+\uncover<8->{Complex<int> i;                // \alt<8>{acceptable?}{\alert<9>{error}}}}\end{codeblock}
+
+\uncover<9>{\scriptsize\begin{itemize}
+  \item[*] compile-time check + type introspection
+  \end{itemize}}
+
+\end{frame}
+
+\begin{frame}{Class template \insertcontinuationtext}
+  \begin{itemize}
+  \item A class template can be seen as a type \textit{generator}
+  \item A class template is parameterized by one or more template parameters
+    (types, but not only)
+  \item A template \textit{specialization} identifies a template name and a set
+    of template arguments corresponding to the template parameters
+    \begin{itemize}
+    \item Template arguments can be explictly specified (e.g. following the
+      template name between angular brackets \code{<>}) or deduced based on
+      constructor arguments
+    \end{itemize}
+  \item When a class template specialization is used in a context where a type
+    is needed, the compiler \textit{instantiates} a new type
+    \begin{itemize}
+    \item Identical instantiations are merged together
+    \end{itemize}
+  \item Only member functions that are actually used are instantiated
+  \item There are ways to constrain the arguments used to instantiate a template
+    \begin{itemize}
+    \item Notably, \Cpp{}20 has introduced \textit{concepts}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Function template}
+
+  \begin{codeblock}<1->{
+double norm2(Complex const\& c) \{ \ddd \} // not valid any more
+norm2(f);                             // error; f is of type Complex<float>}\end{codeblock}
+
+  \begin{codeblock}<2->{
+auto norm2(Complex<\alert<4-5>{float}> const\& c) \{
+  return c.real() * c.real() + c.imag() * c.imag();
+\}
+norm2(f); // ok
+norm2(d); // error; d is of type Complex<double>}\end{codeblock}
+
+  \begin{codeblock}<3->{
+auto norm2(Complex<\alert<4-5>{double}> const\& c) \{
+  return c.real() * c.real() + c.imag() * c.imag();
+\}
+norm2(d); // ok}\end{codeblock}
+
+  \begin{codeblock}<5->{
+template<typename \alert<5>{FP}> // or template<class FP>
+auto norm2(Complex<\alert<5>{FP}> const\& c) \{
+  return c.real() * c.real() + c.imag() * c.imag();
+\}
+\uncover<6>{auto nf = norm2(f); // nf is of type float
+auto nd = norm2(d); // nd is of type double}}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{Function template \insertcontinuationtext}
+
+  \begin{codeblock}
+template<typename \alert<2>{FP}>
+auto norm2(\alert<2>{Complex<FP>} const\& c)
+\{ return c.real() * c.real() + c.imag() * c.imag(); \}
+
+\uncover<2->{template<typename \alert<2>{C}>
+auto norm2(\alert<2>{C} const\& c)
+\{ return c.real() * c.real() + c.imag() * c.imag(); \}}
+
+\uncover<3->{norm2(f); // ok}
+\uncover<4->{norm2(d); // ok}
+\uncover<5->{std::complex<float> g;
+norm2(g); // ok!}
+
+\uncover<6->{namespace std \{
+  template<class T>
+  class complex \{
+    \ddd
+   public:
+    T real() const;
+    T imag() const;
+  \};
+\}}\end{codeblock}
+
+  \begin{textblock}{6}(6,5)
+    \visible<7->{This shows the basic idea behind \alert<7>{generic programming}}
+  \end{textblock}
+
+\end{frame}
+
+\begin{frame}{Function template \insertcontinuationtext}
+  \begin{itemize}
+  \item A function template can be seen as a function \textit{generator}
+  \item A function template is parameterized by one or more template parameters
+    (types, but not only)
+  \item A template \textit{specialization} identifies a template name and a set
+    of template arguments corresponding to the template parameters
+    \begin{itemize}
+    \item Template arguments can be explictly specified (e.g. following the
+      template name between angular brackets \code{<>}) or deduced based on
+      function arguments
+    \end{itemize}
+  \item When a function template specialization is used in a context where a
+    function is needed, the compiler \textit{instantiates} a new function
+    \begin{itemize}
+    \item Identical instantiations are merged together
+    \end{itemize}
+  \item Only functions that are actually used are instantiated
+  \item There are ways to constrain the arguments used to instantiate a template
+  \item Usually there is no separate definition of a function template
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Template argument deduction}
+
+  \begin{itemize}
+  \item In order to instantiate a template every template argument has to be
+    known
+  \item Template arguments can be deduced from function call arguments
+    \begin{codeblock}
+template<class F> F norm2(Complex<F> const& c) \{\ddd\}
+
+Complex<float> f;
+norm2(f);          // no need to specify norm2<float>(f)
+norm2<float>(f);   // ok, be explicit
+norm2<double>(f);  // instantiate and call norm2<double>, probably failing\end{codeblock}
+
+  \item Sometimes it's not possible to deduce all template arguments from function
+    parameters
+    \begin{codeblock}
+template<class Number>
+Number lexical_cast(std::string const& s) // convert a string to a number
+\{\ddd\}
+
+auto d = lexical_cast<double>("3.14"); // the destination type is needed\end{codeblock}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Template argument deduction \insertcontinuationtext}
+
+  \begin{itemize}
+  \item Constructor calls can be used to deduce \textit{class} template arguments
+    \begin{itemize}
+    \item Constructor Template Argument Deduction (CTAD)
+    \end{itemize}
+    \begin{codeblock}
+template<class FP> class Complex \{\ddd\};
+
+Complex d;             // error, cannot deduce FP
+Complex<double> e;     // ok
+Complex f\{1.\};         // ok, Complex<double>
+Complex<double> g\{1.\}; // ok
+Complex<float> h\{1.\};  // ok, 1. -> 1.F\end{codeblock}
+  \item If CTAD is not available (e.g. in older \Cpp{} versions), leverage
+    function template argument deduction
+    \begin{codeblock}
+template<class FP>
+auto make_complex(FP r, FP i) \{
+  return Complex<FP>(r, i);
+\}
+
+auto c = make_complex(1.,2.); // instead of Complex c\{1.,2.\}\end{codeblock}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Exercises}
+
+  \begin{itemize}
+  \item Write an \code{operator+} that adds two complex numbers of different types
+
+  \item Transform the \code{Rational} class into a class template, where the
+    parameter is the type used to represent numerator and denominator. Adapt the
+    operators.
+
+    Write a program that instantiates the \code{Rational} class with integral
+    types such as \code{int}, \code{long int}, \code{long long int}, \code{short
+      int}. Combine objects of those types using the operators.
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Non-type template parameters}
+  \begin{itemize}
+  \item A class/function template parameter need not be a type
+  \item A template parameter can be a value, which must be known at compile time
+
+    \begin{codeblock}<2->{
+template<int I> struct C \{ \ddd \};
+C<2> c2;
+C<3> c3;              // different type
+int n; std::cin >> n;
+C<n> c4;              // error, n is not a compile-time constant}\end{codeblock}
+
+  \item<3-> The type of the value needs to satisfy certain constraints
+  \item<3-> Integral types (e.g. \code{int}, \code{char}, \code{bool}) and
+    enumeration types are allowed, other \textit{structural} types (including
+    floating-point types) since \Cpp{}20
+
+    \begin{codeblock}<3->{
+template<double D> struct F \{ \ddd \}; // ok since C++20}\end{codeblock}
+
+\item<4-> Type and non-type template parameters can be mixed
+
+  \begin{codeblock}<4->{
+template<class T, int N> struct array \{ \ddd \};
+template<class T, T v> struct integral_constant \{ \ddd \};}\end{codeblock}
+
+  \end{itemize}
+
+\end{frame}

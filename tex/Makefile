@@ -12,6 +12,7 @@ pf2022.pdf: $(TEXFILES)
 	echo '\input{functions.tex}' >> contents.tex
 	echo '\input{reference.tex}' >> contents.tex
 	echo '\input{class.tex}' >> contents.tex
+	echo '\input{templates.tex}' >> contents.tex
 	$(LATEX) pf2022
 	$(LATEX) pf2022
 	rm contents.tex
@@ -50,6 +51,12 @@ class.pdf: pf2022.tex frontmatter.tex class.tex
 	echo '\input{class.tex}' > contents.tex
 	$(LATEX) -jobname=class $(TRANS)
 	$(LATEX) -jobname=class $(TRANS)
+	rm contents.tex
+
+templates.pdf: pf2022.tex frontmatter.tex templates.tex
+	echo '\input{templates.tex}' > contents.tex
+	$(LATEX) -jobname=templates $(TRANS)
+	$(LATEX) -jobname=templates $(TRANS)
 	rm contents.tex
 
 clean:
