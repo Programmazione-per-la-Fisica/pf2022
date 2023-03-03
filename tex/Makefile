@@ -13,6 +13,7 @@ pf2022.pdf: $(TEXFILES)
 	echo '\input{reference.tex}' >> contents.tex
 	echo '\input{class.tex}' >> contents.tex
 	echo '\input{templates.tex}' >> contents.tex
+	echo '\input{stl.tex}' >> contents.tex
 	$(LATEX) pf2022
 	$(LATEX) pf2022
 	rm contents.tex
@@ -57,6 +58,12 @@ templates.pdf: pf2022.tex frontmatter.tex templates.tex
 	echo '\input{templates.tex}' > contents.tex
 	$(LATEX) -jobname=templates $(TRANS)
 	$(LATEX) -jobname=templates $(TRANS)
+	rm contents.tex
+
+stl.pdf: pf2022.tex frontmatter.tex stl.tex
+	echo '\input{stl.tex}' > contents.tex
+	$(LATEX) -jobname=stl $(TRANS)
+	$(LATEX) -jobname=stl $(TRANS)
 	rm contents.tex
 
 clean:
