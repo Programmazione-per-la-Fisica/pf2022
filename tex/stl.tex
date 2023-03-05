@@ -250,7 +250,7 @@ for (double d; std::cin >> d; ) \{
     \begin{codeblock}
 std::vector<int> v \{\ddd\};
 auto first = v.begin(); // std::vector<int>::iterator
-auto last = v.end();    // std::vector<int>::iterator\end{codeblock}
+auto last  = v.end();   // std::vector<int>::iterator\end{codeblock}
   \end{itemize}
 
 \end{frame}
@@ -317,15 +317,14 @@ auto its = itv->begin(); // its points to the first character
   \begin{itemize}
   \item \code{++it} advances \code{it} so that it points to the next element in
     the range
-    \begin{codeblock}
+  \end{itemize}
+
+  \begin{codeblock}
 std::vector<int> v \{123, 456, 789\};
 auto first = v.begin();
-auto last = v.end();
+auto last  = v.end();
 std::cout << *first; // print 123
-\visible<2->{++first;}
-\visible<2->{std::cout << *first; // print 456}\end{codeblock}
-
-  \end{itemize}
+\end{codeblock}
 
   \begin{tikzpicture}[
     anchor=south west,
@@ -346,10 +345,36 @@ std::cout << *first; // print 123
     \node (a3) [dotted word, right=of a2] {};
     \node (first) [word, below=.5cm of a0, label={180:\textit{\scriptsize first}}] {};
     \node (last) [word, below=.5cm of a3, label={180:\textit{\scriptsize last}}] {};
-    \visible<1>{\draw[->] (first.north) -- (a0.south);}
-    \visible<2->{\draw[->] (first.north) -- (a1.south);}
+    \draw[->] (first.north) -- (a0.south);
     \draw[->] (last.north) --  (a3.south);
   \end{tikzpicture}
+
+  \begin{codeblock}<2->{
+++first;
+std::cout << *first; // print 456}\end{codeblock}
+
+  \visible<2->{\begin{tikzpicture}[
+    anchor=south west,
+    node distance=0,
+    ]
+    \node at (0,0) [memory] {};
+
+    \node at (2.9,-0.1) [
+    rectangle,
+    fill=green!10!white,
+    draw=black!40,
+    minimum width=3.2cm,
+    minimum height=0.7cm,
+    ] {};
+    \node (a0) at (3,0) [word] {123};
+    \node (a1) [word, right=of a0] {456};
+    \node (a2) [word, right=of a1] {789};
+    \node (a3) [dotted word, right=of a2] {};
+    \node (first) [word, below=.5cm of a0, label={180:\textit{\scriptsize first}}] {};
+    \node (last) [word, below=.5cm of a3, label={180:\textit{\scriptsize last}}] {};
+    \draw[->] (first.north) -- (a1.south);
+    \draw[->] (last.north) --  (a3.south);
+  \end{tikzpicture}}
 
 \end{frame}
 
@@ -360,6 +385,30 @@ std::cout << *first; // print 123
     \begin{codeblock}
 ++first; ++first;
 first == last;  // true\end{codeblock}
+
+  \begin{tikzpicture}[
+    anchor=south west,
+    node distance=0,
+    ]
+    \node at (0,0) [memory] {};
+
+    \node at (2.9,-0.1) [
+    rectangle,
+    fill=green!10!white,
+    draw=black!40,
+    minimum width=3.2cm,
+    minimum height=0.7cm,
+    ] {};
+    \node (a0) at (3,0) [word] {123};
+    \node (a1) [word, right=of a0] {456};
+    \node (a2) [word, right=of a1] {789};
+    \node (a3) [dotted word, right=of a2] {};
+    \node (first) [word, below=.5cm of a0, label={180:\textit{\scriptsize first}}] {};
+    \node (last) [word, below=.5cm of a3, label={180:\textit{\scriptsize last}}] {};
+    \draw[->] (first.north) -- (a3.south);
+    \draw[->] (last.north) --  (a3.south);
+  \end{tikzpicture}
+
   \item<2-> Other operations (\code{--it}, \code{it~+~n}, \code{it~+=~n},
     \code{it~<~it2}, \ldots) may be supported, depending on the underlying range
     \begin{itemize}
@@ -375,21 +424,21 @@ std::vector<int> c \{ \ddd \};\end{codeblock}
 
   \begin{codeblock}<2->{
 auto sum = 0;
-for (int i = 0, n = c.size(); i != n; ++i) \{
+for (int i \{0\}, n = c.size(); i != n; ++i) \{
   auto const& v = c[i];
   sum += v;
 \}}\end{codeblock}
 
   \begin{codeblock}<3->{
 auto sum = 0;
-for (auto it = c.begin(), end = c.end(); it != end; ++it) \{
+for (auto it = c.begin(), last = c.end(); it != last; ++it) \{
   auto const& v = *it;
   sum += v;
 \}}\end{codeblock}
 
   \begin{codeblock}<4->{
 auto sum = 0;
-for (auto const& v : c) \{
+for (auto const& v : c) \{ // translates to the loop with iterators
   sum += v;
 \}}\end{codeblock}
 
@@ -570,7 +619,7 @@ assert(e == b);}}\end{codeblock}
     corresponds to \code{N})
   \item \code{operator[]} gives access to the $i^{th}$ element
     \begin{codeblock}
-int const M = 4;
+int const M \{4\};
 std::array<int, M> arr\{1,2\}; // \{1,2,0,0\}
 
 std::cout << arr.size(); // print 4
@@ -590,14 +639,16 @@ std::cout << arr[1];     // print 3\end{codeblock}
   \end{itemize}
 
   \begin{codeblock}
-template<class \alert{T}> using Array3 = std::array<\alert{T}, 3>; // array of 3 T's
+// array of 3 T's
+template<class \alert{T}> using Array3 = std::array<\alert{T}, 3>;
 
-Array3<\alert{double}> a; // a is std::array<double, 3>\end{codeblock}
+Array3<\alert{double}> a; // std::array<double, 3>\end{codeblock}
 
-\begin{codeblock}
-template<int \alert{N}> using ArrayOfBytes = std::array<std::byte, \alert{N}>; // array of N bytes
+  \begin{codeblock}
+// array of N bytes
+template<int \alert{N}> using ArrayOfBytes = std::array<std::byte, \alert{N}>;
 
-ArrayOfBytes<\alert{16}> b; // b is std::array<std::byte, 16>\end{codeblock}
+ArrayOfBytes<\alert{16}> b; // std::array<std::byte, 16>\end{codeblock}
 \end{frame}
 
 \begin{frame}[fragile]{Algorithms}
@@ -608,11 +659,11 @@ ArrayOfBytes<\alert{16}> b; // b is std::array<std::byte, 16>\end{codeblock}
   \end{itemize}
 
   \begin{itemize}
-  \item<2-> Sum all the elements of a container \code{cont}
+  \item<2-> Sum all the elements of a container \code{cont} of \code{int}s
     \begin{codeblock}
-auto sum = 0;
-for (int i = 0; i != cont.size(); ++i) \{
-  sum += cont[i];
+int sum \{0\};
+for (auto it = cont.begin(), last = cont.end(); it != last; ++it) \{
+  sum += *it;
 \}\end{codeblock}
 
     \begin{codeblock}<3->{
@@ -621,8 +672,8 @@ auto sum = std::accumulate(cont.begin(), cont.end(), 0); // better}\end{codebloc
   \item<4-> Find an element equal to \code{val} in a container \code{cont}
     \begin{codeblock}
 auto it = cont.begin();
-auto const end = cont.end();
-for (; it != end; ++it) \{
+auto const last = cont.end();
+for (; it != last; ++it) \{
   if (*it == val) \{
     break;
   \}
@@ -684,7 +735,7 @@ concept Incrementable = requires(T t) \{ ++t; \};
 template<Incrementable T>
 auto advance(T& t) \{ ++t; \}
 
-int i\{\};
+int i \{42\};
 advance(i); // ok, int is a model of Incrementable
 
 struct S \{\};
@@ -770,7 +821,7 @@ for (; first \alert{<} --last; ++first) \ddd}\end{codeblock}
 \begin{frame}[fragile]{Algorithms in action}
 
   \begin{codeblock}
-std::array a = \{ 23, 54, 41, 0, 18 \};
+std::array a \{23, 54, 41, 0, 18\};
 
 // sort the array in ascending order
 std::sort(std::begin(a), std::end(a));
@@ -800,20 +851,18 @@ auto it = std::find(std::begin(v), std::end(v), 42);\end{codeblock}
     \item How fast do they run? how much additional memory do they need?
     \end{itemize}
   \item They enable \textit{parallelism for the masses}
-    \begin{itemize}[<.->]
-    \item C++17
-    \end{itemize}
-  \end{itemize}
 
-  \begin{codeblock}<+->{
+    \begin{codeblock}<.->{
 #include <execution>
 
-std::vector<int> v = \ddd;
+std::vector<int> v \{\ddd\};
 
 std::sort(\alert{std::execution::par}, v.begin(), v.end());
 
 auto it = std::find(\alert{std::execution::par}, v.begin(), v.end(), 123);
 }\end{codeblock}
+
+  \end{itemize}
 
 \end{frame}
 
@@ -926,12 +975,13 @@ auto \alert<2,4>{lt42}(int n)
 \}
 
 \invisible{
-LessThan42 lt42\{\};}
+LessThan42 lt42\{\};
+// or: auto lt42 = LessThan42\{\};}
 auto b = \alert<2,7>{lt42(}32\alert<2,7>{)}; // true
 
-\uncover<3->{vector v\{61,32,51\};
-auto it = find_if(
-    begin(v), end(v),
+\uncover<3->{std::vector v \{61,32,51\};
+auto it = std::find_if(
+    v.begin(), v.end(),
     \alert<3,8>{lt42}
 ); // *it == 32}}\end{codeblock}
 
@@ -947,13 +997,14 @@ auto it = find_if(
   \}
 \alert<4>{\};}
 
-\uncover<5->{\alt<5>{LessThan42 lt42\{\};}{auto lt42 = LessThan42\{\};}}
+\uncover<5->{LessThan42 lt42\{\};}
+\uncover<6->{// or: auto lt42 = LessThan42\{\};}
 \uncover<7->{auto b = \alert<7>{lt42(}32\alert<7>{)}; // true}
 
-\uncover<8,9>{vector v\{61,32,51\};
-auto it = find_if(
-    begin(v), end(v),
-    \alert{\alt<8>{lt42}{LessThan42\{\}}}
+\uncover<8->{std::vector v \{61,32,51\};
+auto it = std::find_if(
+    v.begin(), v.end(),
+    \alert{lt42} // or directly: \alert{LessThan42\{\}}
 ); // *it == 32}}\end{codeblock}
 
     \end{column}
@@ -972,17 +1023,18 @@ class LessThan \{
   \}
 \};
 
-\uncover<3->{LessThan lt42\{42\};
-auto b1 = \alt<-5>{lt42}{\alert<6>{LessThan\{42\}}}(32); // true}
+\uncover<3->{LessThan lt42 \{42\};
+auto b1 = lt42(32); // true}
+\uncover<6->{// or: auto b1 = LessThan\{42\}(32);}
+\uncover<4->{LessThan lt24 \{24\};
+auto b2 = lt24(32); // false}
+\uncover<6->{// or: auto b2 = LessThan\{24\}(32);}
 
-\uncover<4->{LessThan lt24\{24\};
-auto b2 = \alt<-5>{lt24}{\alert<6>{LessThan\{24\}}}(32); // false}
-
-\uncover<5->{vector v\{61,32,51\};
-auto i1 = find_if(\ldots, \alt<-5>{lt42}{\alert<6>{LessThan\{42\}}}); // *i1 == 32
-auto i2 = find_if(\ldots, \alt<-5>{lt24}{\alert<6>{LessThan\{24\}}}); // i2 == end, i.e. not found}}\end{codeblock}
-
-  \uncover<6>{}
+\uncover<5->{std::vector v \{61,32,51\};}
+\uncover<5->{auto i1 = std::find_if(\ldots, lt42); // *i1 == 32}
+\uncover<6->{// or: auto i1 = std::find_if(\ldots, LessThan\{42\});}
+\uncover<5->{auto i2 = std::find_if(\ldots, lt24); // i2 == v.end(), i.e. not found}
+\uncover<6->{// or: auto i2 = std::find_if(\ldots, LessThan\{24\});}}\end{codeblock}
 
 \end{frame}
 
@@ -993,23 +1045,23 @@ auto i2 = find_if(\ldots, \alt<-5>{lt24}{\alert<6>{LessThan\{24\}}}); // i2 == e
 #include <random>
 
 // random bit generator
-std::default_random_engine gen;
+std::default_random_engine eng;
 
 // generate N 32-bit unsigned integer numbers
 for (int n = 0; n != N; ++n) \{
-  std::cout <{}< \alert{gen()} <{}< \bslashn;
+  std::cout <{}< \alert{eng()} <{}< \bslashn;
 \}
 
 // generate N floats distributed normally (mean: 0., stddev: 1.)
 std::normal\_distribution<float> dist;
 for (int n = 0; n != N; ++n) \{
-  std::cout <{}< \alert{dist(gen)} <{}< \bslashn;
+  std::cout <{}< \alert{dist(eng)} <{}< \bslashn;
 \}
 
 // generate N ints distributed uniformly between 1 and 6 included
 std::uniform\_int\_distribution<> roll\_dice(1, 6);
 for (int n = 0; n != N; ++n) \{
-  std::cout <{}< \alert{roll\_dice(gen)} <{}< \bslashn;
+  std::cout <{}< \alert{roll\_dice(eng)} <{}< \bslashn;
 \}\end{codeblock}
 
 \end{frame}
@@ -1020,7 +1072,6 @@ for (int n = 0; n != N; ++n) \{
   \item A concise way to create an unnamed function object
   \item Useful to pass actions/callbacks to algorithms, threads, frameworks,
     \ldots
-  \end{itemize}
 
   \begin{columns}[t]
 
@@ -1048,23 +1099,31 @@ class LessThan \{
 
     \begin{column}{.5\textwidth}
       \begin{codeblock}<2->{
-find_if(\ldots, LessThan42\{\});
+std::find_if(\ldots, LessThan42\{\});
 
-\uncover<3->{find_if(\ldots, \alert<3>{[](int n) \{}
-               return n < 42;
-             \alert<3>{\}}
+\uncover<3->{std::find_if(\ldots, \alert<3>{[](int n) \{}
+                    return n < 42;
+                  \alert<3>{\}}
 );}
 
-find_if(\ldots, LessThan\{m\});
+std::find_if(\ldots, LessThan\{m\});
 
-\uncover<4->{\only<4>{\alert{int m = \ddd;}}
-find_if(\ldots, [\alert<4->{\only<4>{=}\only<5>{m = \ddd}}](int n) \{
-              return n < \alert<4->{m};
-             \}
-);}}\end{codeblock}
-    \end{column}
+\uncover<4->{\alert<4>{auto m = \ddd};
+std::find_if(\ldots, [\alert<4>{=}](int n) \{
+                    return n < \alert<4>{m};
+                  \}
+);}
+\uncover<5->{std::find_if(\ldots, [\alert<5>{m = \ddd}](int n) \{
+                    return n < \alert<5>{m};
+                  \}
+);}
+}\end{codeblock}
+      \end{column}
 
-  \end{columns}
+    \end{columns}
+
+  \end{itemize}
+
 \end{frame}
 
 \begin{frame}[fragile]{Lambda closure}
@@ -1081,9 +1140,9 @@ find_if(\ldots, [\alert<4->{\only<4>{=}\only<5>{m = \ddd}}](int n) \{
   \begin{columns}[t]
     \begin{column}{.5\textwidth}
       \begin{codeblock}<2->{
-\uncover<4-6>{int v = 42;}
+\uncover<4->{auto v = 42;}
 
-\uncover<2->{auto lt = [}\temporal<5-6>{}{=}{v = 42}\uncover<2->{]}\uncover<3->{(\alt<-7>{int }{auto} n)\uncover<9->{ -> bool}
+\uncover<2->{auto lt = [\alt<5-|trans>{v}{ }]}\uncover<3->{(int n)
            \{ return n < v; \}}
 
 \uncover<6->{auto r = lt(5); // true}}\end{codeblock}
@@ -1093,24 +1152,24 @@ find_if(\ldots, [\alert<4->{\only<4>{=}\only<5>{m = \ddd}}](int n) \{
 
     \begin{column}{.5\textwidth}
       \begin{codeblock}<2->{
-\uncover<2->{class SomeUniqueName \{
-  \uncover<5->{int v\_;}
+class SomeUniqueName \{
+  \uncover<5->{int v;}
  public:
   \uncover<5->{explicit SomeUniqueName(int v)
-    : v\_\{v\} \{\}}
-  \uncover<8->{template<typename T>}
-  \alt<-8>{auto}{bool } operator()\uncover<3->{(\alt<-7>{int}{T  } n)} const
-  \uncover<3->{\{ return n < v\uncover<5->{\_}; \}}
-\};}
+    : v\{v\} \{\}}
+  auto operator()\uncover<3->{(int n)} const
+  \uncover<3->{\{ return n < v; \}}
+\};
 
-\uncover<4->{int v = 42;}
+\uncover<4->{auto v = 42;}
 \uncover<2->{auto lt = SomeUniqueName\{}\uncover<5->{v}\uncover<2->{\};}
 \uncover<6->{auto r = lt(5); // true}}\end{codeblock}
     \end{column}
   \end{columns}
 
   \begin{itemize}
-  \item<10-> Each lambda is of a different type
+  \item<7-> Two lambda expressions produce objects of different types, even if
+    they are identical
   \end{itemize}
 
 \end{frame}
@@ -1133,27 +1192,74 @@ find_if(\ldots, [\alert<4->{\only<4>{=}\only<5>{m = \ddd}}](int n) \{
 
     \begin{columns}[T]
       \begin{column}{.5\textwidth}
-        \begin{codeblock}<2->{
-int v = 3;
-auto lam = [\only<3->{\alert<3>{&}}v] \{\};}\end{codeblock}
+        \begin{codeblock}<3->{
+auto v = 3;
+auto l = [\alert<3>{&}v] \{\};}
+\end{codeblock}
       \end{column}
 
       \begin{column}{.5\textwidth}
-        \begin{codeblock}<2->{
+        \begin{codeblock}<3->{
 class SomeUniqueName \{
-  int\only<3->{\alert<3>{&}} v\_;
+  int\alert<3>{&} v;
  public:
-  explicit SomeUniqueName(int\only<3->{\alert<3>{&}} v)
-    : v\_\{v\} \{\}
+  explicit SomeUniqueName(int\alert<3>{&} v)
+    : v\{v\} \{\}
   \ddd
 \};
 
-auto lam = SomeUniqueName\{v\};}\end{codeblock}
+auto l = SomeUniqueName\{v\};
+}\end{codeblock}
       \end{column}
     \end{columns}
 
   \item<5-> Global variables are available without being captured
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Lambda explicit return type}
+
+  \begin{itemize}
+  \item The return type of the call operator can be explicity specified
+  \end{itemize}
+    
+  \begin{codeblock}{
+[=](int n) -> \alert{bool} \{ return n < v; \}
+}\end{codeblock}
+
+  becomes
+
+  \begin{codeblock}{
+class SomeUniqueName \{
+  \ddd
+  \alert{bool} operator()(int n) const
+  \{ return n < v; \}
+\};
+}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{Generic lambda}
+
+  \begin{itemize}
+  \item If a parameter of the lambda expression is \code{auto}, the lambda expression is \textit{generic}
+  \item The call operator is a template
+  \end{itemize}
+
+  \begin{codeblock}{
+[](\alert{auto} n) \{ \ddd \}
+}\end{codeblock}
+
+  becomes
+
+  \begin{codeblock}{
+class SomeUniqueName \{
+  \ddd
+  \alert{template<typename T>}
+  auto operator()(\alert{T} n) const \{ \ddd \}
+\};
+}\end{codeblock}
+
 \end{frame}
 
 \begin{frame}[fragile]{Lambda: \texttt{const} and \texttt{mutable}}
@@ -1172,13 +1278,15 @@ auto lam = SomeUniqueName\{v\};}\end{codeblock}
   \begin{columns}[T]
     \begin{column}{.5\textwidth}
       \begin{codeblock}<1->{
-[]\only<2->{\alert<2>{() mutable}}\only<3->{\alert<3>{ -> void}} \{\};}\end{codeblock}
+[i]\uncover<2->{\alert<2>{() mutable}}\uncover<3->{\alert<3>{ -> bool}} \{\ddd ++i \ddd\}}\end{codeblock}
     \end{column}
 
     \begin{column}{.5\textwidth}
       \begin{codeblock}<1->{
-struct SomeUniqueName \{
-  \alt<-2>{auto}{\alert<3>{void}} operator()() \only<1>{\alert{const} }\{\}
+class SomeUniqueName \{
+  int i;
+  \ddd
+  \alt<-2|trans:0>{auto}{\alert<3>{bool}} operator()() \only<1|trans:0>{\alert{const} }\{\ddd ++i \ddd\}
 \};}\end{codeblock}
     \end{column}
   \end{columns}
@@ -1192,7 +1300,7 @@ struct SomeUniqueName \{
 
   \begin{codeblock}<4->
 int v = 3;
-[\&v] \{ ++v; \}(); // note how the lamdba is immediately executed
+[\&v] \{ ++v; \} (); // NB the lamdba is immediately invoked
 assert(v == 4);\end{codeblock}
 
 \end{frame}
@@ -1204,26 +1312,41 @@ assert(v == 4);\end{codeblock}
   \item It's similar to a function returning a reference to a local variable
 
   \begin{codeblock}
-auto make\_lambda() // auto here is unavoidable
+auto make_lambda() // auto here is unavoidable
 \{
   int v = 3;
   return [\alert{&}] \{ return v; \}; // return a closure
 \}
 
-auto lam = make\_lambda();
-auto d = lam(); // the captured variable is dangling here\end{codeblock}
+auto l = make\_lambda();
+auto d = l(); // the captured variable is dangling here\end{codeblock}
 
-  \item<2-> Capture by reference only if the lambda doesn't survive the current
-    scope
+  \item<2-> Capture by reference only if the lambda closure doesn't survive the
+    current scope
   \end{itemize}
 
+\end{frame}
+
+\begin{frame}{Exercises}
+
+  \begin{itemize}
+  \item Given a vector of \code{int}s, compute the product of the numbers (Hint:
+    use \code{std::accumulate})
+  \item Generate \code{N} numbers, using one of the
+    \href{https://en.cppreference.com/w/cpp/named_req/RandomNumberDistribution}{available
+      random number distributions}, and insert them in a \code{std::vector} (Hint: use \code{std::generate_n})
+  \item Compute the mean and the standard deviation of the generated numbers
+    (Hint: use \code{std::accumulate})
+  \end{itemize}
+
+  Don't forget the tests!
 \end{frame}
 
 \begin{frame}[fragile]{\texttt{std::function}}
 
   \begin{itemize}
-  \item Type-erased wrapper that can store and invoke any callable entity with a
-    certain signature
+  \item \textit{Type-erased} wrapper that can store and invoke any callable
+    entity with a certain signature
     \begin{itemize}
     \item function, function object, lambda, member function
     \end{itemize}
