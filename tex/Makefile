@@ -14,6 +14,7 @@ pf2022.pdf: $(TEXFILES)
 	echo '\input{class.tex}' >> contents.tex
 	echo '\input{templates.tex}' >> contents.tex
 	echo '\input{stl.tex}' >> contents.tex
+	echo '\input{compilation.tex}' >> contents.tex
 	$(LATEX) pf2022
 	$(LATEX) pf2022
 	rm contents.tex
@@ -64,6 +65,12 @@ stl.pdf: pf2022.tex frontmatter.tex stl.tex
 	echo '\input{stl.tex}' > contents.tex
 	$(LATEX) -jobname=stl $(TRANS)
 	$(LATEX) -jobname=stl $(TRANS)
+	rm contents.tex
+
+compilation.pdf: pf2022.tex frontmatter.tex compilation.tex
+	echo '\input{compilation.tex}' > contents.tex
+	$(LATEX) -jobname=compilation $(TRANS)
+	$(LATEX) -jobname=compilation $(TRANS)
 	rm contents.tex
 
 clean:

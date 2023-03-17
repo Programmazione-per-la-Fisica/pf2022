@@ -1,0 +1,461 @@
+% !TeX root = ./pf2022.tex
+
+%\includeonlyframes{current}
+
+\section{Compilation model}
+
+\begin{frame}[fragile]{The C++ compilation model}
+
+  This is the \textbf{current} model; \Cpp{}20 has introduced \textit{modules}
+  (not further discussed)
+
+  \begin{center}
+    \begin{tikzpicture}[every text node part/.style={align=center},
+      source/.style={
+        tape,tape bend height=.15cm,draw,thick,inner sep=4pt
+      }
+      ]
+
+      \node[source] (source) {Source file \\
+        {\scriptsize(\code{hello.cpp})}};
+
+      \node[source,right=3cm of source] (exe) {Executable\\binary file \\ {\scriptsize(\code{a.out})}};
+
+      \draw[thick,-Stealth] (source) -- (exe) node[above,align=center,midway] {Compilation \\ {\scriptsize(\code{g++})}};
+
+
+      \visible<2->{\node[source,left=2cm of source,yshift=1cm] (iostream) {Header \\
+          {\scriptsize(\code{iostream})}\\\hphantom{\scriptsize(\code{string})}};
+
+        \node[source,left=2cm of source,yshift=-1cm] (string) {Header \\
+          {\scriptsize(\code{string})}\\\hphantom{{\scriptsize(\code{iostream})}}};
+
+        \draw[thick,dashed,-{Stealth[open]}] (string) -- (source) node[below,midway] {\tiny\code{\#include}};
+        \draw[thick,dashed,-{Stealth[open]}] (iostream) -- (source) node[above,midway] {\tiny\code{\#include}};
+      }
+      \visible<3->{
+        \node[inner sep=10pt,rounded corners,draw=red,thick,fit=(iostream) (string) (source)] (tu) {};
+        \node[red,above left=2mm of tu.south east,anchor=south east] {Translation Unit};
+      }
+    \end{tikzpicture}
+  \end{center}
+
+  \begin{itemize}
+  \item<4-> The production of the \textit{translation unit} is the first step of
+    the overall \textit{compilation} process
+  \item<4-> It is accomplished by running the \textit{preprocessor} on a source file
+  \item<5-> To stop the compilation process after the preprocessing:
+    \begin{itemize}
+    \item \code{g++ -E hello.cpp}
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{The C++ compilation model \insertcontinuationtext}
+
+  \begin{itemize}
+  \item A typical C++ program is composed of many files, i.e. there are many
+    translation units
+    \begin{center}
+      \visible<2->{\begin{tikzpicture}[
+          every text node part/.style={align=center},
+          every node/.style={fill=white,inner sep=3pt},
+          source/.style={
+            tape,tape bend height=.15cm,draw=red,thick
+          },
+          binary/.style={
+            tape,tape bend height=.15cm,draw=green,thick
+          },
+          tool/.style={
+            single arrow, single arrow head extend=0, draw,thick,
+            shape border rotate=0,single arrow tip angle=120
+          }
+          ]
+
+          \node[source] (sources) {\phantom{Translation}\\\phantom{Units}};
+          \foreach \x in {4,...,1} {
+            \node[source,very thin,above left=\x mm and \x mm of sources,
+            anchor=north west] {\phantom{Translation}\\\phantom{Units}};
+          }
+          \node[source] at (sources) {Translation\\Units};
+
+          \node[tool,right=1cm of sources] (compiler) {\textit{Compiler}};
+
+          \node[binary,right=1cm of compiler] (exe) {Executable};
+
+          \draw[thick] (sources) -- node[near start,above,inner sep=0,outer sep=1pt] {\scriptsize\textbf{+}} (compiler);
+          \draw[thick] (compiler) -- (exe);
+        \end{tikzpicture}
+      }
+    \end{center}
+  \item<3-> How to distribute source code over multiple files?
+  \item<3-> How to expose functionality from one translation unit so that it can
+    be used in another?
+  \item<4-> \textbf{Physical} design
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{The C++ compilation model \insertcontinuationtext}
+
+  \begin{itemize}
+  \item The overall process to translate C++ source code to the final binary
+    executable consists of multiple stages
+  \end{itemize}
+
+  \begin{center}
+      \begin{tikzpicture}[
+        every text node part/.style={align=center},
+        every node/.style={fill=white,inner sep=3pt},
+        source/.style={
+          tape,tape bend height=.15cm,draw=red,thick
+        },
+        binary/.style={
+          tape,tape bend height=.15cm,draw=green,thick
+        },
+        object/.style={
+          tape,tape bend height=.15cm,draw=green!50!black,thick
+        },
+        tool/.style={
+          single arrow, single arrow head extend=0,draw,thick,
+          shape border rotate=0,single arrow tip angle=120
+        }
+        ]
+
+        \node[source] (sources) {\phantom{Translation}\\\phantom{Units}};
+        \foreach \x in {4,...,1} {
+          \node[source,very thin,above left=\x mm and \x mm of
+          sources,anchor=north west]
+          {\phantom{Translation}\\\phantom{Units}};
+        }
+        \node[source] at (sources) {Translation\\Units};
+
+
+        \node[tool,right=.5cm of sources] (compiler) {Compiler};
+
+        \node[object,right=1cm of compiler,draw=none] (objects) {\phantom{Object}\\\phantom{Files}};
+        \foreach \x in {4,...,1} {
+          \node[object,very thin,above left=\x mm and \x mm of
+          objects,anchor=north west] {\phantom{Object}\\\phantom{Files}};
+        }
+        \node[object] at (objects){Object\\Files};
+
+        \node[tool,right=.5cm of objects] (linker) {Linker};
+
+        \node[binary,right=.5cm of linker] (exe) {Executable};
+
+        \draw[thick] (sources) -- node[near start,above,inner sep=0,outer sep=1pt] {\scriptsize\textbf{+}} (compiler);
+        \draw[thick] (compiler) -- node[near start,above,inner sep=0,outer sep=1pt] {\scriptsize\textbf{+}} (objects);
+        \draw[thick] (objects) -- node[near start,above,inner sep=0,outer sep=1pt] {\scriptsize\textbf{+}} (linker);
+        \draw[thick] (linker) -- (exe);
+
+        \node[object,above left=1.3cm and 0cm of linker] (libstd) {Standard\\Library};
+
+        \node[object,right=.6cm of libstd,draw=none] (otherlibsph) {\phantom{Other}\\\phantom{Libraries}};
+        \foreach \x in {4,...,1} {
+          \node[object,very thin,above left=\x mm and \x mm of
+          otherlibsph,anchor=north west]
+          {\phantom{Other}\\\phantom{Libraries}};
+        }
+        \node[object] at (otherlibsph) {Other\\Libraries};
+
+        \draw[thick,-Stealth] (libstd) -- (linker);
+        \draw[thick,-Stealth] (otherlibsph) -- (linker);
+
+      \end{tikzpicture}
+    \end{center}
+
+    \begin{itemize}
+    \item<2-> To produce object files without linking:
+      \begin{itemize}
+      \item \code{g++ -c hello.cpp}
+      \end{itemize}
+    \item<2-> To keep all the intermediate files generated during the compilation process:
+      \begin{itemize}
+      \item \code{g++ -save-temps hello.cpp}
+      \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Definition vs Declaration}
+
+  \begin{itemize}
+  \item A \alert{definition} is a declaration that fully defines an entity
+  \item Examples:
+  \end{itemize}
+
+  \begin{codeblock}{
+bool less_than(int a, int b) \{ // function definition
+  return a < b;
+\}
+
+class Sample \{ // class definition
+ public:
+  void add(double x) // member function definition
+  \{
+    ++N_;
+    sum_x_ += x;
+    \ddd
+  \}
+  \ddd
+\};
+}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{Definition vs Declaration \insertcontinuationtext}
+
+  \begin{itemize}
+  \item A \alert{declaration} that is \textbf{not} a definition just introduces
+    the name (and, when applicable, the type) of the entity
+  \item Examples:
+  \end{itemize}
+
+  \begin{codeblock}{
+bool less_than(int a, int b); // function declaration (prototype)
+
+class Sample; // class (forward) declaration
+
+class Sample \{ // class definition
+ public:
+  void add(double x); // member function declaration
+  \ddd
+\};
+}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}{One-Definition Rule (ODR)}
+  \begin{itemize}[<+->]
+  \item An entity can be defined only once in each translation unit
+  \item More generally, an entity can be defined only once in the whole program,
+    with exceptions
+  \item Some entities can be defined in multiple translation units, provided the
+    definitions are identical (\textit{token-by-token} in the source code)
+    \begin{itemize}[<.->]
+    \item Class definitions
+    \item \textit{inline} functions and variables
+    \item Class and function templates
+    \item \ldots
+    \end{itemize}
+  \item To guarantee that definitions are identical in all translation units
+    they typically appear in \textbf{header files}, which are then
+    \code{\#include}d where needed
+  \item The compiler may not be able to diagnose violations of the ODR
+    \begin{itemize}
+    \item The generated executable may behave incorrectly
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Definition vs Declaration during compilation and linking}
+
+  \begin{itemize}[<+->]
+  \item During the compilation step:
+  \begin{itemize}
+  \item Calling a function requires the previous declaration of that function
+  \item The declaration of a function requires the previous declaration of the
+    types involved
+  \item Creating and manipulating an object require the definition of the
+    corresponding type (the type has to be \textit{complete})
+  \end{itemize}
+
+\item During the linking step:
+
+  \begin{itemize}
+  \item Everything has to be properly defined
+  \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Header and source files}
+
+  \begin{itemize}[<+->]
+  \item Header files are the primary mechanism to guarantee that declarations
+    and definitions are identical in all translation units
+    \begin{itemize}[<.->]
+    \item Because they are \code{\#include}d in other header and source files
+      where those declarations and definitions are needed
+    \end{itemize}
+  \item For a given software component, a typical situation foresees
+    \begin{itemize}
+    \item One \textbf{header} file containing free function declarations, class
+      definitions with member function declarations, template definitions
+    \item One \textbf{source} file containing definitions of free and member functions
+      and of any other entity needed for the implementation
+      \begin{itemize}
+      \item \textbf{Suggestion} the source file \code{\#include}s the header
+        file as the first \code{\#include}
+      \end{itemize}
+    \item One file with the unit \textbf{tests}
+    \end{itemize}
+  \item A function defined in a header file needs to be
+    \code{inline}
+    \begin{itemize}
+    \item NB the \code{inline} keyword is not (any more) an optimization hint to
+      the compiler
+    \end{itemize}
+  \item Member functions (methods) defined inside the class and function
+    templates are implicitly \code{inline}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Member functions defined outside the class}
+
+  \begin{itemize}
+
+  \item A method must be declared inside the class, but can be \textbf{just}
+    declared inside the class, i.e. not also defined
+
+    \begin{codeblock}
+class Sample \{
+  \ddd
+  void add(double);
+\};\end{codeblock}
+
+  \item When defining a method outside the class, the method name must be
+    prefixed with the class name followed by the \textit{scope} operator
+    \code{::}, i.e. \textit{class-name}\code{::}\textit{method-name}
+
+    \begin{codeblock}
+void Sample::add(double x) \{
+  ++N_;
+  sum_x_ += x;
+  \ddd
+\}\end{codeblock}
+
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Member functions defined outside the class \insertcontinuationtext}
+
+  \begin{itemize}
+  \item The method can be defined in the same file (normally a header file) or
+    even in another file (normally the corresponding source file)
+
+  \item If the definition is in a header file, the method should be declared \code{inline}
+
+    \begin{codeblock}
+\alert{inline} void Sample::add(double d) \{
+  ++N_;
+  sum_x_ += x;
+  \ddd
+\}\end{codeblock}
+
+    This informs the compiler/linker that all the definitions of the function, even
+    if they are in multiple translation units, are equal
+
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Include guards}
+
+  \begin{itemize}[<+->]
+  \item A header (file) may be included, directly or indirectly, multiple times
+    in the \textbf{same} translation unit
+    \begin{codeblock}
+#include "result.hpp"
+#include "sample.hpp" // sample.hpp already includes result.hpp\end{codeblock}
+
+  \item Multiple definitions of the same entity would be available in the
+    \textbf{same} translation unit, which is illegal
+  \item Placing an \textit{include guard} at the beginning of each header file
+    prevents multiple inclusions in the \textbf{same} translation unit
+    \begin{codeblock}
+// file result.hpp
+#ifndef RESULT_HPP
+#define RESULT_HPP
+\ddd
+// classes, functions, templates, \ldots
+\ddd
+#endif\end{codeblock}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{To inline or not to inline?}
+
+  \begin{itemize}
+  \item Pros:
+    \begin{itemize}
+    \item A compiler can optimize more because it sees more code $\rightarrow$
+      faster execution
+      \begin{itemize}
+      \item Definitions of inline functions contained in included header files
+        become part of the translation unit
+      \end{itemize}
+    \item Header-only libraries (i.e. everything is in one or more header files)
+      are easier to distribute (e.g. \code{doctest})
+    \end{itemize}
+  \item Cons:
+    \begin{itemize}
+    \item More physical coupling between software components
+      \begin{itemize}
+      \item Visibility of implementation details
+      \item Every time a header file changes all the including files need to be
+        recompiled $\rightarrow$ longer compilation times
+      \end{itemize}
+    \item The code of the inlined functions may be included many times in the
+      final binary, making it larger and causing inefficient use of the memory
+      system $\rightarrow$ slower execution
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Build systems}
+
+  \begin{itemize}
+  \item When a project includes more than a few files, keeping track of
+    compilation dependencies between them becomes difficult
+  \item A project may foresee multiple \textit{artifacts}: executables,
+    libraries (i.e. collection of object files), tests, \ldots
+  \item A project may depend on other projects, e.g. other libraries
+  \item Usually multiple variants of a project are needed: one for debug, one
+    for testing with code coverage, one for release, one for measuring
+    performance (\textit{profiling}), \ldots
+    \begin{itemize}
+    \item Each variant foresees different compilation flags
+    \end{itemize}
+  \item \ldots
+  \end{itemize}
+
+  \begin{itemize}
+  \item In practice, all the above cannot be done manually and an automatic
+    system is required
+  \item Such a system is usually called \textbf{build system}
+  \item Many build systems exist. We'll use
+    \href{https://cmake.org}{\textbf{CMake}}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{CMake}
+  \begin{itemize}
+  \item \textit{CMake is an open-source, cross-platform family of tools designed
+      to build, test and package software}
+  \item Most used tool to build \Cpp{} projects
+  \item Build targets, dependencies, options, \ldots are expressed declaratively
+    in a file called \code{CMakeLists.txt}
+    \begin{codeblock}{
+cmake_minimum_required(VERSION 3.16)
+project(mandelbrot_sfml VERSION 0.1.0)
+
+find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
+
+string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra")
+
+add_executable(mandelbrot_sfml main.cpp)
+target_link_libraries(mandelbrot_sfml PRIVATE sfml-graphics)
+}\end{codeblock}
+
+  \item See
+    \href{https://github.com/Programmazione-per-la-Fisica/pf2022/tree/main/code/mandelbrot_sfml}{code/mandelbrot_sfml}
+    for a basic example
+  \end{itemize}
+\end{frame}
