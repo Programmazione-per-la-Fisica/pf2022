@@ -15,6 +15,7 @@ pf2022.pdf: $(TEXFILES)
 	echo '\input{templates.tex}' >> contents.tex
 	echo '\input{stl.tex}' >> contents.tex
 	echo '\input{compilation.tex}' >> contents.tex
+	echo '\input{memory_management.tex}' >> contents.tex
 	$(LATEX) pf2022
 	$(LATEX) pf2022
 	rm contents.tex
@@ -71,6 +72,12 @@ compilation.pdf: pf2022.tex frontmatter.tex compilation.tex
 	echo '\input{compilation.tex}' > contents.tex
 	$(LATEX) -jobname=compilation $(TRANS)
 	$(LATEX) -jobname=compilation $(TRANS)
+	rm contents.tex
+
+memory_management.pdf: pf2022.tex frontmatter.tex memory_management.tex
+	echo '\input{memory_management.tex}' > contents.tex
+	$(LATEX) -jobname=memory_management $(TRANS)
+	$(LATEX) -jobname=memory_management $(TRANS)
 	rm contents.tex
 
 clean:
