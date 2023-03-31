@@ -3,6 +3,7 @@
 TEXFILES = $(shell echo *.tex)
 LATEX = pdflatex -halt-on-error -file-line-error
 TRANS = "\PassOptionsToClass{trans}{beamer}\input{pf2022}"
+#TRANS = "\input{pf2022}"
 
 pf2022.pdf: $(TEXFILES)
 	rm -f contents.tex
@@ -17,6 +18,7 @@ pf2022.pdf: $(TEXFILES)
 	echo '\input{compilation.tex}' >> contents.tex
 	echo '\input{memory_management.tex}' >> contents.tex
 	echo '\input{static.tex}' >> contents.tex
+	echo '\input{polymorphism.tex}' >> contents.tex
 	$(LATEX) pf2022
 	$(LATEX) pf2022
 	rm contents.tex
@@ -85,6 +87,12 @@ static.pdf: pf2022.tex frontmatter.tex static.tex
 	echo '\input{static.tex}' > contents.tex
 	$(LATEX) -jobname=static $(TRANS)
 	$(LATEX) -jobname=static $(TRANS)
+	rm contents.tex
+
+polymorphism.pdf: pf2022.tex frontmatter.tex polymorphism.tex
+	echo '\input{polymorphism.tex}' > contents.tex
+	$(LATEX) -jobname=polymorphism $(TRANS)
+	$(LATEX) -jobname=polymorphism $(TRANS)
 	rm contents.tex
 
 clean:
