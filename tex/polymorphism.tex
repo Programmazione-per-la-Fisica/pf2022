@@ -27,7 +27,7 @@ auto it = std::find(l.begin(), l.end(), Command\{"send"\});\end{codeblock}
 
   \begin{columns}[T]
     \begin{column}{.4\textwidth}
-  \begin{codeblock}
+  \begin{codeblock}{
 struct Base \{
   int a;
   Base(int a) : a\{a\} \{\}
@@ -47,7 +47,10 @@ de.d;
 de.h();
 de.a;   // Base::a
 de.f(); // Base::f
-de();   // Base::operator()\end{codeblock}
+de();   // Base::operator()
+\uncover<2->{Base* b1 = &de;}
+\uncover<3->{Base& b2 = de;}
+}\end{codeblock}
    
     \end{column}
     \begin{column}{.6\textwidth}
@@ -63,8 +66,11 @@ de();   // Base::operator()\end{codeblock}
         \item Let's ignore access control (\code{private}, \code{public}) for
           the moment
         \end{itemize}
-      \item When constructing a \code{Derived} object, one has to construct also
-        the corresponding \code{Base} \textit{sub-object}
+      \item Constructing a \code{Derived} object constructs also the
+        corresponding \code{Base} \textit{sub-object}, either explicitly (like
+        in this case) or implicitly
+      \item<2-> \code{Derived*} can be implicitly converted to \code{Base*}
+      \item<3-> A \code{Derived} object can bind to \code{Base\&}
       \end{itemize}
     \end{column}
   \end{columns}
@@ -99,7 +105,7 @@ for (auto& s : shapes) \{ s.move(Point\{1,2\}); \} // wish\end{codeblock}
 
 \end{frame}
 
-\begin{frame}[fragile]{Dynamic polymorphism \insertcontinuationtext}
+\begin{frame}<trans:0>[fragile]{Dynamic polymorphism \insertcontinuationtext}
 
   \begin{codeblock}
 
@@ -128,22 +134,87 @@ struct Rectangle \alt<1>{\{ // \textit{is a} }{: }Shape \uncover<2->{\{}\only<2>
 \only<9>{\alert{delete s};}\only<10>{\alert{// automatically deleted at end of scope}}\end{codeblock}
 \end{frame}
 
-\begin{frame}[fragile]{On dynamic polymorphism}
+\begin{frame}<0|trans:1>[fragile]{Dynamic polymorphism \insertcontinuationtext}
+
+  \begin{codeblock}{
+struct Shape \{                     // \alert{abstract} base class
+  \alert{virtual} Point where() const \alert{= 0}; // \alert{pure virtual} function
+  \alert{virtual} \~Shape();                // virtual dtor; no \upquote{= 0} here
+\};
+
+struct Circle : Shape \{ // derived class
+  Point c;
+  int r;
+  Point where() const \alert{override};
+\};
+
+struct Rectangle : Shape \{ // derived class
+  Point ul;
+  Point lr;
+  Point where() const \alert{override};
+\};
+
+Shape\alert{*} create_shape();   // return \alert{new} Circle/Rectangle
+auto s = create_shape();
+s->where();
+delete s;                // better use a smart pointer
+}\end{codeblock}
+
+\end{frame}
+
+\begin{frame}{Dynamic polymorphism \insertcontinuationtext}
 
   \begin{itemize}
-  \item Overridden functions must have the same signature
+  \item<1-> A non-static member function (i.e. a method) is a \textbf{virtual}
+    function if it is first declared with the keyword \code{virtual} or if it
+    \textbf{override}s a virtual member function declared in a base class
+  \item<1-> A class with a virtual member function is called a
+    \textbf{polymorphic} class.
+  \item<2-> Virtual functions support \textbf{dynamic binding} and
+    \textbf{object-oriented programming}
+    \begin{itemize}
+    \item A call to a virtual function made through a pointer/reference to a
+      base class is dispatched to the corresponding function of the actual
+      derived class object behind that pointer/reference
+    \end{itemize}
+  \item<2-> Overridden functions must have the same signature
     \begin{itemize}
     \item Beware of member function hiding
     \end{itemize}
-  \item<2-> Pure virtual functions cannot be defined (i.e. have an implementation)
-    -- with one exception
-  \item<2-> Cannot create objects of an abstract base class
-  \item<3-> Dynamic polymorphism works by pointer\uncover<5->{ and by reference}
   \end{itemize}
 
-  \begin{codeblock}<1->
-struct Base \{ virtual \alert<1>{void f(int)} = 0; \};
-struct Derived : Base \{ \alert<1>{void f(int)} override \{\} \};
+\end{frame}
+
+
+\begin{frame}{Dynamic polymorphism \insertcontinuationtext}
+
+  \begin{itemize}
+  \item A virtual function is \textbf{pure} if its declaration ends with
+    \code{= 0}
+    \begin{itemize}
+    \item A pure virtual function cannot be defined (i.e. have an
+      implementation) -- with one exception (see later)
+    \end{itemize}
+  \item A class is \textbf{abstract} if it has at least one pure virtual
+    function
+    \begin{itemize}
+    \item No objects of an abstract class can be created
+    \item An abstract class is typically used to represent an \textit{interface} 
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Dynamic polymorphism \insertcontinuationtext}
+
+  \begin{codeblock}{
+struct Base \{
+  virtual void f(int) = 0;
+\};
+
+struct Derived : Base \{
+  void f(int) override \{\ddd\}
+\};
 
 \uncover<2->{Base b;                 // error}
 \uncover<3->{Base* b1 = new Derived; // ok, owning pointer, remember to delete}
@@ -152,10 +223,12 @@ struct Derived : Base \{ \alert<1>{void f(int)} override \{\} \};
 \uncover<4->{Base* b2 = &d           // ok, non-owning pointer, don\textquotesingle{}t delete}
 \uncover<4->{b2->f(0);               // calls Derived::f}
 \uncover<5->{Base& b3 = d;           // ok}
-\uncover<5->{b3.f(0);                // calls Derived::f}\end{codeblock}
+\uncover<5->{b3.f(0);                // calls Derived::f}
+}\end{codeblock}
 
 \end{frame}
-\begin{frame}[fragile]{Mixing interface and implementation}
+
+\begin{frame}<trans:0>[fragile]{Mixing interface and implementation}
 
   \begin{codeblock}
 struct Shape \{
@@ -180,6 +253,33 @@ struct Rectangle : Shape \{
   \~Rectangle();
   Point where() const override \{ return (\temporal<2,3>{ul}{p}{\alert<4>{Shape::where()}} + lr) / 2; \}\only<2>{ // \alert{p is inherited}}
 \};\end{codeblock}
+
+  \uncover<5>{Not recommended, especially for data members}
+
+\end{frame}
+
+\begin{frame}<0|trans:1>[fragile]{Mixing interface and implementation}
+
+  \begin{codeblock}{
+struct Shape \{
+  \alert{Point p;}
+  Shape(Point p) : p\{p\} \{\}
+  virtual \~Shape();
+  virtual Point where() const \{ return p; \} // \alert{not pure; default implementation}
+\};
+
+struct Circle : Shape \{
+  int r;
+  Circle(Point p, double d) : \alert{Shape\{p\}}, r\{d\} \{\}
+  // where() implementation is inherited from Shape
+\};
+
+struct Rectangle : Shape \{
+  Point lr;
+  Rectangle(Point p1, Point p2) : \alert{Shape\{p1\}}, lr\{p2\} \{\}
+  Point where() const override \{ return (\alert{p} + lr) / 2; \} // \alert{p is inherited}
+\};
+}\end{codeblock}
 
   \uncover<5>{Not recommended, especially for data members}
 
@@ -321,8 +421,8 @@ inline std::ostream& operator<<(std::ostream& os, Complex const& c)
   return os;
 \}\end{codeblock}
 
-  \item It should actually be a function template and accept/return
-    \code{std::basic_ostream<\ddd>}
+  \item To be more general, it should actually be a function template and
+    accept/return \code{std::basic_ostream<\ddd>}
   \end{itemize}
 \end{frame}
 
@@ -413,72 +513,86 @@ auto g() \{
 
 \begin{frame}[fragile]{Overriding vs hiding}
 
-  \begin{codeblock}
-struct Base \{
-  virtual \alert{void f(int)};
-\};
-
-struct Derived : Base \{
-  \only<6->{virtual }\alert{void f(int)};\uncover<5->{ // overriding, virtuality is "inherited"}
-\};
-
-\uncover<2->{Derived d;
-Base& b = d;}
-\uncover<3->{b.f(1);}\uncover<4->{          // call Derived::f(int)}\end{codeblock}
-
-\end{frame}
-
-\begin{frame}[fragile]{Overriding vs hiding \insertcontinuationtext}
-
   \begin{codeblock}{
 struct Base \{
   virtual \alert{void f(int)};
 \};
 
 struct Derived : Base \{
-  \only<9>{virtual }\alert{void f(unsigned)}\only<9->{ override};\only<5-8>{ // this is another function, hiding Base::f}\only<9>{ // still hiding}\only<10->{ // error: does not override}
+  \alert{void f(int)}; // overriding, virtuality is "inherited"
 \};
 
-\uncover<2->{Derived d;
-Base& b = d;}
-\uncover<3->{b.f(1);}\uncover<4->{          // call Base::f(int)}
-\uncover<6->{b.f(1U);}\uncover<7->{         // call Base::f(int)}
-\uncover<8->{d.f(1);          // call Derived::f(unsigned)}
-\uncover<8->{d.f(1U);         // call Derived::f(unsigned)}
+Derived d;
+Base& b = d;
+b.f(1);          // call Derived::f(int)
 }\end{codeblock}
 
-  \uncover<11->{Virtual functions should specify exactly one of \code{virtual}, 
+  \begin{itemize}
+  \item A virtual function should specify exactly one of \code{virtual},
     \code{override}, or \code{final}
-    \begin{itemize}
-    \item A \code{final} virtual function cannot be overridden in a derived
-      class
-    \item A class can be declared \code{final} and cannot be derived from
-      \begin{codeblock}
-struct Derived final \{ \ddd \};\end{codeblock}
-    \end{itemize}
-  }
+  \item A \code{final} virtual function cannot be overridden in a derived class
+  \item A class can be declared \code{final} and cannot be derived from
+    \begin{codeblock}{
+struct Derived final \{ \ddd \};
+}\end{codeblock}
+  \end{itemize}
 
 \end{frame}
 
 \begin{frame}[fragile]{Overriding vs hiding \insertcontinuationtext}
 
-  \begin{codeblock}
+  \begin{codeblock}{
 struct Base
 \{
-    virtual \alert{void f(int) const};
+  virtual void f(\alert{int});
 \};
 
 struct Derived : Base
 \{
-    \only<6>{virtual }\alert{void f(int)}\only<7->{ override};\only<5>{ // this is another function, hiding Base::f}\only<6>{ // still hiding}\only<7->{ // error: does not override}
+  virtual void f(\alert{unsigned}); \uncover<4->{// this is another function}\uncover<7->{, hiding Base::f}
 \};
 
 \uncover<2->{Derived d;
-Base const& b = d;}
-\uncover<3->{b.f(1);}\uncover<4->{          // call Base::f(int) const}\end{codeblock}
+Base& b = d;}
+\uncover<3->{b.f(1);}\uncover<4->{          // call Base::f(int)}
+\uncover<5->{b.f(1U);}\uncover<6->{         // call Base::f(int)}
+\uncover<7->{d.f(1);          // call Derived::f(unsigned)}
+\uncover<7->{d.f(1U);         // call Derived::f(unsigned)}
+}\end{codeblock}
 
-  \uncover<8->{Virtual functions should specify exactly one of \code{virtual},
-    \code{override} or \code{final}}
+  \begin{itemize}
+  \item<9-> Virtual functions should specify exactly one of \code{virtual}, 
+    \code{override}, or \code{final}
+  \item<9-> Specifying \code{override} (or \code{final}) would have caused
+    a compilation error
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Overriding vs hiding \insertcontinuationtext}
+
+  \begin{codeblock}{
+struct Base
+\{
+    virtual void f(int) \alert{const};
+\};
+
+struct Derived : Base
+\{
+  virtual void f(int); \uncover<3->{// this is another function, hiding Base::f}
+\};
+
+\uncover<2->{Derived d;
+Base& b = d;
+b.f(1);}\uncover<3->{          // call Base::f(int) const}
+}\end{codeblock}
+
+  \begin{itemize}
+  \item<4-> Virtual functions should specify exactly one of \code{virtual}, 
+    \code{override}, or \code{final}
+  \item<4-> Specifying \code{override} (or \code{final}) would have caused
+    a compilation error
+  \end{itemize}
 
 \end{frame}
 
@@ -502,7 +616,7 @@ struct Shape
   virtual Point where() const \{ return p; \}
 \};
 
-struct Rectangle : Shape \{\ddd\}
+struct Rectangle : Shape \{\ddd\};
 
 \uncover<2->{Shape s;\only<2>{ // \alert{desirable?}}}
 \uncover<3->{Shape s2 = s1;\only<3>{ // \alert{desirable?}}}
@@ -511,7 +625,7 @@ Shape s = rect;\only<4>{ // \alert{desirable??}}}}\end{codeblock}
 \end{frame}
 
 \begin{frame}[fragile]{Slicing \insertcontinuationtext}
-  \begin{codeblock}
+  \begin{codeblock}{
 \uncover<2->{void process1(\alert<3>{Shape&} shape)\only<3>{ // by reference}
 \{
   \ddd shape.where() \ddd\only<4->{ // Point\{2., 4.\}}
@@ -525,8 +639,14 @@ Shape s = rect;\only<4>{ // \alert{desirable??}}}}\end{codeblock}
 \uncover<1->{auto rect = Rectangle\{Point\{1., 7.\}, Point\{3., 1.\}\};}
 \uncover<2->{process1(rect);}
 \uncover<5->{process2(rect);}
+}\end{codeblock}
 
-  \end{codeblock}
+  \begin{itemize}
+  \item<8-> When an object \code{obj} of a derived class is passed to a function
+    that takes a parameter of a base class \textbf{by value}, only the base class
+    sub-object of \code{obj} is passed to the function
+  \end{itemize}
+
 \end{frame}
 
 \begin{frame}[fragile]{Keeping the base class abstract}
@@ -569,7 +689,7 @@ Shape s; // \alt<1>{\alert{not really desirable}}{\alert<2>{error}}
 
 \begin{frame}[fragile]{Accessibility through derivation}
 
-  \begin{codeblock}
+  \begin{codeblock}{
 class Base \{
  private:
   \ddd
@@ -579,14 +699,16 @@ class Base \{
   \ddd
 \};
 
-class Derived : \alert{public}\uncover<2->{|\alert{private}}\uncover<3->{|\alert{protected}} Base \{\};\end{codeblock}
+class Derived : \alert{public}\uncover<2->{|\alert{private}}\uncover<3->{|\alert{protected}} Base \{\};
+}\end{codeblock}
 
   Derivation itself can be
   \begin{description}
     \item [\code{public}] \code{public} in B $\rightarrow$ \code{public} in D\\
       \code{protected} in B $\rightarrow$ \code{protected} in D
       \begin{itemize}
-      \item Sub-typing, \textit{is-a}
+      \item Sub-typing (\textit{is-a} relationship)
+      \item This is the one you should use
       \end{itemize}
     \item<2-> [\code{private}] \code{public} or \code{protected} in B
       $\rightarrow$ \code{private} in D
@@ -601,7 +723,7 @@ class Derived : \alert{public}\uncover<2->{|\alert{private}}\uncover<3->{|\alert
   \end{description}
 \end{frame}
 
-\begin{frame}[fragile]{\code{protected} access}
+\begin{frame}<trans:0>[fragile]{\code{protected} access}
   \begin{codeblock}
 class Shape \{
  \only<5-6>{\alert<5>{protected}:}\only<7->{\alert{private:}}
@@ -626,6 +748,34 @@ class Rectangle : \alert<1>{public} Shape \{\only<1>{ // \alert{is-a}}
   \item \code{protected} and \code{public} members represent an interface
   \item Data members are a poor interface, keep them private
   \end{itemize}}
+
+\end{frame}
+
+\begin{frame}<0|trans:1>[fragile]{\code{protected} access}
+  \begin{codeblock}{
+class Shape \{
+ \alert{protected}:
+  Point p;
+ public:
+  Shape(Point p) : p\{p\} \{\}
+  virtual ~Shape() = default;
+  virtual Point where() const \{ return p; \}
+  virtual double area() const = 0;
+\};
+
+class Rectangle : public Shape \{ // is-a
+ private:
+  Point lr;
+ public:
+  Rectangle(Point p1, Point p2) : Shape\{p1\}, lr\{r\} \{\}
+  double area() const override \{ \ddd std::abs(\alert{p}.x - lr.x) \ddd \}
+\};
+}\end{codeblock}
+
+  \begin{itemize}[<8->]
+  \item \code{protected} and \code{public} members represent an interface
+  \item Data members are a poor interface, keep them private
+  \end{itemize}
 
 \end{frame}
 
