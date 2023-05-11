@@ -24,6 +24,25 @@ pf2022.pdf: $(TEXFILES)
 	$(LATEX) pf2022
 	rm contents.tex
 
+pf2022p.pdf: $(TEXFILES)
+	rm -f contents.tex
+	echo '\input{introduction.tex}' > contents.tex
+	echo '\input{basics.tex}' >> contents.tex
+	echo '\input{flowcontrol.tex}' >> contents.tex
+	echo '\input{functions.tex}' >> contents.tex
+	echo '\input{reference.tex}' >> contents.tex
+	echo '\input{class.tex}' >> contents.tex
+	echo '\input{templates.tex}' >> contents.tex
+	echo '\input{stl.tex}' >> contents.tex
+	echo '\input{compilation.tex}' >> contents.tex
+	echo '\input{memory_management.tex}' >> contents.tex
+	echo '\input{static.tex}' >> contents.tex
+	echo '\input{polymorphism.tex}' >> contents.tex
+	echo '\input{epilog.tex}' >> contents.tex
+	$(LATEX) -jobname=pf2022p $(TRANS)
+	$(LATEX) -jobname=pf2022p $(TRANS)
+	rm contents.tex
+
 introduction.pdf: pf2022.tex frontmatter.tex introduction.tex
 	echo '\input{introduction.tex}' > contents.tex
 	$(LATEX) -jobname=introduction $(TRANS)
