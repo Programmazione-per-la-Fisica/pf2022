@@ -19,6 +19,7 @@ pf2022.pdf: $(TEXFILES)
 	echo '\input{memory_management.tex}' >> contents.tex
 	echo '\input{static.tex}' >> contents.tex
 	echo '\input{polymorphism.tex}' >> contents.tex
+	echo '\input{epilog.tex}' >> contents.tex
 	$(LATEX) pf2022
 	$(LATEX) pf2022
 	rm contents.tex
@@ -93,6 +94,12 @@ polymorphism.pdf: pf2022.tex frontmatter.tex polymorphism.tex
 	echo '\input{polymorphism.tex}' > contents.tex
 	$(LATEX) -jobname=polymorphism $(TRANS)
 	$(LATEX) -jobname=polymorphism $(TRANS)
+	rm contents.tex
+
+epilog.pdf: pf2022.tex frontmatter.tex epilog.tex
+	echo '\input{epilog.tex}' > contents.tex
+	$(LATEX) -jobname=epilog $(TRANS)
+	$(LATEX) -jobname=epilog $(TRANS)
 	rm contents.tex
 
 clean:
